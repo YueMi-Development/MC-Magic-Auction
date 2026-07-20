@@ -104,6 +104,12 @@ Each arena file supports:
   - If a custom item is virtual, the winner receives its `worth` directly in their economy balance.
   - If a custom item is non-virtual, its `rewards` section is mandatory, containing either commands (e.g. `type: "command"`, `value: "..."`) or YueMiLibs item keys (e.g. `type: "item"`, `id: "..."`). Non-virtual custom items are never physically awarded directly; only their nested `rewards` are distributed on win.
 - **Bot Players (`module-bot`)**: A separate subproject library shaded into the core plugin. Using `_BOT_` in arguments resolves to dynamic sequential bot players (`Bot 1`, `Bot 2`...). Bidding is simulated after a 1-3s delay with random realistic decisions, and inventory/economy operations are protected against bot winners.
+- **Dynamic Bidding Progress Graph**: The bidding progress graph updates dynamically using `gui.update()` and conditional rendering (no more flickering). The progress graph stays open for 10 seconds post-calculation before proceeding to evaluation/next rounds.
+- **Anvil Bidding**: Anvil input validation checks if the bid exceeds the player's balance and reopens with a 3-tick delay to cleanly reset the text field to `"0"`. Bidding supports currency suffixes (e.g., `10k`, `1.5m`) using YueMiLibs `NumberUtils`.
+- **Currency Formatting**: All currency outputs (BIN price, player balance, bid announcements, item worths, graph lore) use suffix formatting (e.g., `1.9k` instead of `1900`) using `NumberUtils.formatSuffix()`.
+- **Player Disconnections**: If a player disconnects during an auction, if there are other players they are skipped with their bid set to `$1` for the rest of the rounds. If no other real players remain, the auction is cancelled.
+- **Tie-Breaker & Bonus Round**: If there is a tie on the last round, the first player to submit their bid wins. If the normal rounds end without a winner and no `1.0` multiplier is configured in the arena config, a bonus round with a `1.0` multiplier is forced.
+- **Multiplier Clamping**: Multipliers are strictly clamped to a minimum of `1.0` and a maximum of `10.0` at runtime.
 
 ### GUI Lifecycle
 
@@ -111,7 +117,7 @@ All display GUIs (preview, bidding graph, reveal) use `ClosePolicy.REOPEN` durin
 
 - **Preview → Bidding**: Preview GUI sets CLOSE before closing in its countdown handler
 - **Bidding → Graph**: After all bids collected, any lingering graph GUI is closed via `closeGraphGui()`, then rebuilt and opened with animation started
-- **Graph → Preview/Reveal**: Graph GUI is closed with CLOSE policy before `evaluateRound()` transitions to the next state
+- **Graph → Preview/Reveal**: Graph GUI is closed with CLOSE policy before `evaluateRound()` transitions to the next state (after a 10-second stay delay)
 - **Reveal → End**: Reveal GUI is closed with CLOSE policy via `closeRevealGui()` before `endSession()` closes all inventories
 
 The anvil bidding GUI uses `ClosePolicy.CLOSE` (not REOPEN) to prevent the player from accidentally re-submitting and overwriting their bid. The `onClose` handler reopens the anvil only if the player has not yet bid.

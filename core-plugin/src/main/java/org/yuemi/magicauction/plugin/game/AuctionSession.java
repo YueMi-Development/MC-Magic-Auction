@@ -41,6 +41,7 @@ public final class AuctionSession {
     
     // Bids for the current round
     private final Map<UUID, Double> currentBids = new HashMap<>();
+    private final List<UUID> bidOrder = new ArrayList<>();
     
     private BukkitTask activeTask;
     private final List<ItemStack> generatedPrizes = new ArrayList<>();
@@ -137,6 +138,7 @@ public final class AuctionSession {
     private void startPreviewState() {
         cancelActiveTask();
         currentBids.clear();
+        bidOrder.clear();
 
         double multiplier = getMultiplier();
         double binPrice = currentBasePrice * multiplier;
@@ -218,6 +220,7 @@ public final class AuctionSession {
                     if (!currentBids.containsKey(player.getUniqueId())) {
                         double botBid = simulateBotBid(binPrice);
                         currentBids.put(player.getUniqueId(), botBid);
+                        bidOrder.add(player.getUniqueId());
                         broadcast("<gray>" + player.getName() + " has submitted their bid.");
                         
                         if (currentBids.size() >= players.size()) {
@@ -227,6 +230,7 @@ public final class AuctionSession {
                 }, 20L + (long) (Math.random() * 40L));
             } else if (!player.isOnline()) {
                 currentBids.put(player.getUniqueId(), 1.0);
+                bidOrder.add(player.getUniqueId());
                 broadcast("<gray>" + player.getName() + " is offline — skipped and bid set to $1.");
                 if (currentBids.size() >= players.size()) {
                     startGraphicsState();
@@ -244,6 +248,7 @@ public final class AuctionSession {
                 for (Player player : players) {
                     if (!currentBids.containsKey(player.getUniqueId())) {
                         currentBids.put(player.getUniqueId(), 1.0);
+                        bidOrder.add(player.getUniqueId());
                         broadcast("<gray>" + player.getName() + " did not bid in time — forced bid of <gold>$1</gold>.");
                         forced = true;
                     }
@@ -315,6 +320,7 @@ public final class AuctionSession {
                     }
 
                     currentBids.put(player.getUniqueId(), bid);
+                    bidOrder.add(player.getUniqueId());
                     player.sendMessage(MiniMessage.miniMessage().deserialize("<green>Bid of <yellow>$" + org.yuemi.libs.api.util.NumberUtils.formatSuffix(bid) + "</yellow> registered."));
 
                     if (currentBids.size() >= players.size()) {
@@ -503,14 +509,60 @@ public final class AuctionSession {
         double secondHighestBid = -1;
         Player winner = null;
 
+        // Find the highest bid value
+        double maxBid = -1;
         for (Player p : players) {
             double bid = currentBids.getOrDefault(p.getUniqueId(), 0.0);
-            if (bid > highestBid) {
-                secondHighestBid = highestBid;
-                highestBid = bid;
-                winner = p;
-            } else if (bid > secondHighestBid) {
-                secondHighestBid = bid;
+            if (bid > maxBid) {
+                maxBid = bid;
+            }
+        }
+
+        boolean isLastRound = currentRound >= arena.getMultipliers().size();
+        if (isLastRound) {
+            // Last round tie-breaker: find all players who bid exactly maxBid
+            List<Player> topBidders = new ArrayList<>();
+            for (Player p : players) {
+                double bid = currentBids.getOrDefault(p.getUniqueId(), 0.0);
+                if (bid == maxBid) {
+                    topBidders.add(p);
+                }
+            }
+            if (topBidders.size() > 1) {
+                // Tie! Find the one who bid first among the top bidders
+                Player firstBidder = null;
+                int firstIndex = Integer.MAX_VALUE;
+                for (Player p : topBidders) {
+                    int idx = bidOrder.indexOf(p.getUniqueId());
+                    if (idx != -1 && idx < firstIndex) {
+                        firstIndex = idx;
+                        firstBidder = p;
+                    }
+                }
+                winner = firstBidder;
+            } else if (!topBidders.isEmpty()) {
+                winner = topBidders.get(0);
+            }
+        } else {
+            // Standard highest bid
+            for (Player p : players) {
+                double bid = currentBids.getOrDefault(p.getUniqueId(), 0.0);
+                if (bid > highestBid) {
+                    winner = p;
+                    highestBid = bid;
+                }
+            }
+        }
+
+        if (winner != null) {
+            highestBid = currentBids.getOrDefault(winner.getUniqueId(), 0.0);
+            // Calculate second highest bid (excluding the winner)
+            for (Player p : players) {
+                if (p.equals(winner)) continue;
+                double bid = currentBids.getOrDefault(p.getUniqueId(), 0.0);
+                if (bid > secondHighestBid) {
+                    secondHighestBid = bid;
+                }
             }
         }
 
@@ -534,8 +586,22 @@ public final class AuctionSession {
                 currentRound++;
                 startPreviewState();
             } else {
-                broadcast("<red><bold>AUCTION OVER!</bold> No winner. Items have been locked away.");
-                endSession();
+                boolean hasMultiplierOne = false;
+                for (double m : arena.getMultipliers()) {
+                    if (Math.abs(m - 1.0) < 0.0001) {
+                        hasMultiplierOne = true;
+                        break;
+                    }
+                }
+                
+                if (!hasMultiplierOne && currentRound == arena.getMultipliers().size()) {
+                    broadcast("<light_purple><bold>BONUS ROUND!</bold></light_purple> <yellow>No winner yet and multiplier 1.0 is not configured. Starting a bonus round with multiplier 1.0!</yellow>");
+                    currentRound++;
+                    startPreviewState();
+                } else {
+                    broadcast("<red><bold>AUCTION OVER!</bold> No winner. Items have been locked away.");
+                    endSession();
+                }
             }
         }
     }
@@ -674,10 +740,11 @@ public final class AuctionSession {
     }
 
     private double getMultiplier() {
+        double mult = 1.0;
         if (currentRound - 1 < arena.getMultipliers().size()) {
-            return arena.getMultipliers().get(currentRound - 1);
+            mult = arena.getMultipliers().get(currentRound - 1);
         }
-        return 1.0;
+        return Math.max(1.0, Math.min(10.0, mult));
     }
 
     private void broadcast(String message) {
@@ -757,6 +824,7 @@ public final class AuctionSession {
             broadcast("<gray>" + disconnectedPlayer.getName() + " disconnected. Skipping their bids for the rest of the auction.");
             if (biddingActive && !currentBids.containsKey(disconnectedPlayer.getUniqueId())) {
                 currentBids.put(disconnectedPlayer.getUniqueId(), 1.0);
+                bidOrder.add(disconnectedPlayer.getUniqueId());
                 if (currentBids.size() >= players.size()) {
                     startGraphicsState();
                 }
