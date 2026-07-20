@@ -97,7 +97,7 @@ public final class StartSubCommand implements SubCommand {
                     return;
                 }
                 botCount++;
-                targetPlayers.add(botHandler.createBot("Bot " + botCount));
+                targetPlayers.add(botHandler.createBot("Bot_" + botCount));
             } else {
                 Player p = Bukkit.getPlayerExact(name);
                 if (p == null) {
