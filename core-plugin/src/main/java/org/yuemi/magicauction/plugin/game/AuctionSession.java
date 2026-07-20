@@ -142,7 +142,7 @@ public final class AuctionSession {
 
         broadcast("<gray>------------------------------------");
         broadcast("<green>Round " + currentRound + " Preview Starts!");
-        broadcast("<gray>BIN (Buy It Now) Price: <gold>$" + String.format("%.2f", binPrice) + "</gold>");
+        broadcast("<gray>BIN (Buy It Now) Price: <gold>$" + org.yuemi.libs.api.util.NumberUtils.formatSuffix(binPrice) + "</gold>");
         broadcast("<gray>------------------------------------");
 
         Gui gui = buildPreviewGui();
@@ -269,7 +269,7 @@ public final class AuctionSession {
         }
 
         guiApi.createAnvilInputBuilder()
-                .title("Balance: $" + (int) playerBalance)
+                .title("Balance: $" + org.yuemi.libs.api.util.NumberUtils.formatSuffix(playerBalance))
                 .initialText("0")
                 .leftItem(paper)
                 .closePolicy(ClosePolicy.CLOSE)
@@ -300,14 +300,14 @@ public final class AuctionSession {
                     if (provider != null) {
                         double balance = provider.getBalance(player);
                         if (balance < bid) {
-                            player.sendMessage(MiniMessage.miniMessage().deserialize("<red>You cannot afford this bid! Balance: $" + String.format("%.2f", balance)));
+                            player.sendMessage(MiniMessage.miniMessage().deserialize("<red>You cannot afford this bid! Balance: $" + org.yuemi.libs.api.util.NumberUtils.formatSuffix(balance)));
                             Bukkit.getScheduler().runTaskLater(manager.getPlugin(), () -> openSinglePlayerBidding(player, binPrice), 3L);
                             return;
                         }
                     }
 
                     currentBids.put(player.getUniqueId(), bid);
-                    player.sendMessage(MiniMessage.miniMessage().deserialize("<green>Bid of <yellow>$" + bid + "</yellow> registered."));
+                    player.sendMessage(MiniMessage.miniMessage().deserialize("<green>Bid of <yellow>$" + org.yuemi.libs.api.util.NumberUtils.formatSuffix(bid) + "</yellow> registered."));
 
                     if (currentBids.size() >= players.size()) {
                         Bukkit.getScheduler().runTask(manager.getPlugin(), this::startGraphicsState);
@@ -425,7 +425,7 @@ public final class AuctionSession {
                     skullMeta.setOwningPlayer(p);
                     skullMeta.displayName(mm.deserialize("<yellow>" + p.getName()));
                     skullMeta.lore(List.of(
-                            mm.deserialize("<gray>Bid: <gold>$" + (int) bid),
+                            mm.deserialize("<gray>Bid: <gold>$" + org.yuemi.libs.api.util.NumberUtils.formatSuffix(bid)),
                             mm.deserialize(bid >= binPrice ? "<green>BIN SUCCESS!" : "<red>No BIN")
                     ));
                     skull.setItemMeta(skullMeta);
@@ -508,10 +508,10 @@ public final class AuctionSession {
                 provider.withdraw(winner, highestBid);
             }
 
-            broadcast("<gold><bold>WINNER!</bold> <yellow>" + winner.getName() + "</yellow> won the auction with a bid of <gold>$" + highestBid + "</gold>!");
+            broadcast("<gold><bold>WINNER!</bold> <yellow>" + winner.getName() + "</yellow> won the auction with a bid of <gold>$" + org.yuemi.libs.api.util.NumberUtils.formatSuffix(highestBid) + "</gold>!");
             startWinnerRevealAnimation(winner);
         } else {
-            broadcast("<red>No players matched the required BIN price of <gold>$" + binThreshold + "</gold> in round " + currentRound + ".");
+            broadcast("<red>No players matched the required BIN price of <gold>$" + org.yuemi.libs.api.util.NumberUtils.formatSuffix(binThreshold) + "</gold> in round " + currentRound + ".");
 
             if (currentRound < arena.getMultipliers().size()) {
                 currentRound++;
@@ -554,7 +554,7 @@ public final class AuctionSession {
                                 double totalWorth = config.getWorth() * stack.getAmount();
                                 if (provider != null && !isBotWinner) {
                                     provider.deposit(winner, totalWorth);
-                                    winner.sendMessage(mm.deserialize("<green>Awarded <gold>$" + totalWorth + "</gold> for virtual item: <yellow>" + config.getDisplayName() + "</yellow> (Worth: $" + config.getWorth() + " each)"));
+                                    winner.sendMessage(mm.deserialize("<green>Awarded <gold>$" + org.yuemi.libs.api.util.NumberUtils.formatSuffix(totalWorth) + "</gold> for virtual item: <yellow>" + config.getDisplayName() + "</yellow> (Worth: $" + org.yuemi.libs.api.util.NumberUtils.formatSuffix(config.getWorth()) + " each)"));
                                 }
                             } else {
                                 // Non-virtual item: Award its config rewards list only!
