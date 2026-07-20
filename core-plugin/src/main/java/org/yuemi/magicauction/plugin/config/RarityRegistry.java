@@ -61,17 +61,20 @@ public final class RarityRegistry {
 
     private static final Map<String, RarityInfo> RARITIES = new HashMap<>();
 
-    public static void load(@NotNull File file) {
+    public static void load(@NotNull File folder) {
         RARITIES.clear();
-        YamlConfiguration config = YamlConfiguration.loadConfiguration(file);
-        for (String key : config.getKeys(false)) {
-            ConfigurationSection sec = config.getConfigurationSection(key);
-            if (sec != null) {
-                String name = sec.getString("name", key);
-                String desc = sec.getString("description", "");
-                String color = sec.getString("color", "gray");
-                RARITIES.put(key.toLowerCase(), new RarityInfo(key, name, desc, color));
-            }
+        if (!folder.exists() || !folder.isDirectory()) return;
+
+        File[] files = folder.listFiles((dir, name) -> name.endsWith(".yml"));
+        if (files == null) return;
+
+        for (File file : files) {
+            YamlConfiguration config = YamlConfiguration.loadConfiguration(file);
+            String id = file.getName().replace(".yml", "");
+            String name = config.getString("name", id);
+            String desc = config.getString("description", "");
+            String color = config.getString("color", "gray");
+            RARITIES.put(id.toLowerCase(), new RarityInfo(id, name, desc, color));
         }
     }
 

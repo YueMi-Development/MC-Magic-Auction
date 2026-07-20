@@ -71,7 +71,7 @@ public final class AuctionManager {
             java.util.zip.ZipEntry entry;
             while ((entry = zip.getNextEntry()) != null) {
                 String name = entry.getName();
-                if (!entry.isDirectory() && (name.startsWith("items/") || name.startsWith("auction/") || name.equals("rarities.yml") || name.equals("types.yml")) && name.endsWith(".yml")) {
+                if (!entry.isDirectory() && (name.startsWith("items/") || name.startsWith("auction/") || name.startsWith("rarities/") || name.startsWith("types/")) && name.endsWith(".yml")) {
                     File outFile = new File(dataFolder, name);
                     if (!outFile.exists()) {
                         outFile.getParentFile().mkdirs();
@@ -93,8 +93,8 @@ public final class AuctionManager {
         
         // Load rarities and types first
         try {
-            RarityRegistry.load(new File(dataFolder, "rarities.yml"));
-            TypeRegistry.load(new File(dataFolder, "types.yml"));
+            RarityRegistry.load(new File(dataFolder, "rarities"));
+            TypeRegistry.load(new File(dataFolder, "types"));
         } catch (Exception e) {
             plugin.getLogger().warning("Failed to load rarity or type registry: " + e.getMessage());
         }
