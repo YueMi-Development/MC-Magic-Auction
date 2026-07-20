@@ -35,6 +35,7 @@ public final class AuctionSession {
     private double currentBasePrice;
     private int currentRevealStep = -1;
     private int currentGraphProgress = 0;
+    private boolean biddingActive = false;
     private Gui graphGui;
     private Gui revealGui;
     
@@ -204,6 +205,7 @@ public final class AuctionSession {
 
     private void startBiddingState() {
         cancelActiveTask();
+        biddingActive = true;
         broadcast("<green>Thinking time over! Opening Anvil bidding...");
 
         double multiplier = getMultiplier();
@@ -223,6 +225,12 @@ public final class AuctionSession {
                         }
                     }
                 }, 20L + (long) (Math.random() * 40L));
+            } else if (!player.isOnline()) {
+                currentBids.put(player.getUniqueId(), 1.0);
+                broadcast("<gray>" + player.getName() + " is offline — skipped and bid set to $1.");
+                if (currentBids.size() >= players.size()) {
+                    startGraphicsState();
+                }
             } else {
                 openSinglePlayerBidding(player, binPrice);
             }
@@ -325,6 +333,7 @@ public final class AuctionSession {
 
     private void startGraphicsState() {
         cancelActiveTask();
+        biddingActive = false;
         closeGraphGui();
         broadcast("<green>All bids collected! Simulating bid graphics...");
 
@@ -723,5 +732,27 @@ public final class AuctionSession {
             player.closeInventory();
         }
         manager.sessionEnded(this);
+    }
+
+    public List<Player> getPlayers() {
+        return players;
+    }
+
+    public void handlePlayerDisconnect(@NotNull Player disconnectedPlayer) {
+        boolean hasOtherRealPlayers = players.stream()
+                .anyMatch(p -> !manager.isBot(p) && p.isOnline() && !p.getUniqueId().equals(disconnectedPlayer.getUniqueId()));
+
+        if (!hasOtherRealPlayers) {
+            broadcast("<red>No real players remaining in the auction. Auction cancelled.");
+            endSession();
+        } else {
+            broadcast("<gray>" + disconnectedPlayer.getName() + " disconnected. Skipping their bids for the rest of the auction.");
+            if (biddingActive && !currentBids.containsKey(disconnectedPlayer.getUniqueId())) {
+                currentBids.put(disconnectedPlayer.getUniqueId(), 1.0);
+                if (currentBids.size() >= players.size()) {
+                    startGraphicsState();
+                }
+            }
+        }
     }
 }

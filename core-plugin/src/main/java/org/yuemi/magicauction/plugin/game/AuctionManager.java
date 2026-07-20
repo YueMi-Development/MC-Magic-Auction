@@ -46,6 +46,18 @@ public final class AuctionManager {
         this.botHandler = new BotProviderImpl();
         createDirectoriesAndDefaults();
         reload();
+
+        plugin.getServer().getPluginManager().registerEvents(new org.bukkit.event.Listener() {
+            @org.bukkit.event.EventHandler
+            public void onPlayerQuit(org.bukkit.event.player.PlayerQuitEvent event) {
+                Player player = event.getPlayer();
+                for (AuctionSession session : new ArrayList<>(activeSessions)) {
+                    if (session.getPlayers().contains(player)) {
+                        session.handlePlayerDisconnect(player);
+                    }
+                }
+            }
+        }, plugin);
     }
 
     private void createDirectoriesAndDefaults() {
