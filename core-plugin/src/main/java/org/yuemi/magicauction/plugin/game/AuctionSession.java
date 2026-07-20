@@ -249,13 +249,13 @@ public final class AuctionSession {
                         bid = Double.parseDouble(input.trim());
                     } catch (NumberFormatException e) {
                         player.sendMessage(MiniMessage.miniMessage().deserialize("<red>Invalid bid! Must be an integer."));
-                        Bukkit.getScheduler().runTask(manager.getPlugin(), () -> openSinglePlayerBidding(player, binPrice));
+                        Bukkit.getScheduler().runTaskLater(manager.getPlugin(), () -> openSinglePlayerBidding(player, binPrice), 3L);
                         return;
                     }
 
                     if (bid < 0) {
                         player.sendMessage(MiniMessage.miniMessage().deserialize("<red>Bid cannot be negative! Use 0 to pass."));
-                        Bukkit.getScheduler().runTask(manager.getPlugin(), () -> openSinglePlayerBidding(player, binPrice));
+                        Bukkit.getScheduler().runTaskLater(manager.getPlugin(), () -> openSinglePlayerBidding(player, binPrice), 3L);
                         return;
                     }
 
@@ -265,7 +265,7 @@ public final class AuctionSession {
                         double balance = provider.getBalance(player);
                         if (balance < bid) {
                             player.sendMessage(MiniMessage.miniMessage().deserialize("<red>You cannot afford this bid! Balance: $" + String.format("%.2f", balance)));
-                            Bukkit.getScheduler().runTask(manager.getPlugin(), () -> openSinglePlayerBidding(player, binPrice));
+                            Bukkit.getScheduler().runTaskLater(manager.getPlugin(), () -> openSinglePlayerBidding(player, binPrice), 3L);
                             return;
                         }
                     }
