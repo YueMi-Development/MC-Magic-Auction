@@ -8,6 +8,8 @@ import org.yuemi.magicauction.bot.BotHandler;
 import org.yuemi.magicauction.bot.BotProviderImpl;
 import org.yuemi.magicauction.plugin.config.ArenaConfig;
 import org.yuemi.magicauction.plugin.config.ItemConfig;
+import org.yuemi.magicauction.plugin.config.RarityRegistry;
+import org.yuemi.magicauction.plugin.config.TypeRegistry;
 
 import java.io.File;
 import java.util.*;
@@ -69,7 +71,7 @@ public final class AuctionManager {
             java.util.zip.ZipEntry entry;
             while ((entry = zip.getNextEntry()) != null) {
                 String name = entry.getName();
-                if (!entry.isDirectory() && (name.startsWith("items/") || name.startsWith("auction/")) && name.endsWith(".yml")) {
+                if (!entry.isDirectory() && (name.startsWith("items/") || name.startsWith("auction/") || name.equals("rarities.yml") || name.equals("types.yml")) && name.endsWith(".yml")) {
                     File outFile = new File(dataFolder, name);
                     if (!outFile.exists()) {
                         outFile.getParentFile().mkdirs();
@@ -87,10 +89,19 @@ public final class AuctionManager {
     }
 
     public void reload() {
+        File dataFolder = plugin.getDataFolder();
+        
+        // Load rarities and types first
+        try {
+            RarityRegistry.load(new File(dataFolder, "rarities.yml"));
+            TypeRegistry.load(new File(dataFolder, "types.yml"));
+        } catch (Exception e) {
+            plugin.getLogger().warning("Failed to load rarity or type registry: " + e.getMessage());
+        }
+
         items.clear();
         arenas.clear();
 
-        File dataFolder = plugin.getDataFolder();
         File itemsFolder = new File(dataFolder, "items");
         File auctionFolder = new File(dataFolder, "auction");
 

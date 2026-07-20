@@ -1,4 +1,6 @@
 id: "netherite_ingot"
+rarity: "mythical"
+type: "material"
 base-item: "minecraft:netherite_ingot"
 display-name: "<dark_gray>Netherite Ingot"
 lore:

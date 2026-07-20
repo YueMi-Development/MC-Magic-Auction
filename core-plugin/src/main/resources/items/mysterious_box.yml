@@ -1,4 +1,6 @@
 id: "mysterious_box"
+rarity: "super_rare"
+type: "collectible"
 base-item: "minecraft:chest"
 display-name: "<gold>Mysterious Box"
 lore:

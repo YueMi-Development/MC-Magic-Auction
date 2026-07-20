@@ -1,4 +1,6 @@
 id: "ancient_scroll"
+rarity: "rare"
+type: "scroll"
 base-item: "minecraft:map"
 display-name: "<aqua>Ancient Scroll"
 lore:

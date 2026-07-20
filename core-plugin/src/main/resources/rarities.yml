@@ -1,0 +1,24 @@
+common:
+  name: "Common"
+  description: "A standard common item"
+  color: "gray"
+uncommon:
+  name: "Uncommon"
+  description: "A slightly better item"
+  color: "green"
+rare:
+  name: "Rare"
+  description: "A rare item of value"
+  color: "blue"
+super_rare:
+  name: "Super Rare"
+  description: "A very rare find"
+  color: "purple"
+legendary:
+  name: "Legendary"
+  description: "A legendary treasure!"
+  color: "orange"
+mythical:
+  name: "Mythical"
+  description: "A mythical artifact of supreme power!"
+  color: "red"

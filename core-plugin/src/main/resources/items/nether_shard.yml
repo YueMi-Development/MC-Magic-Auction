@@ -1,4 +1,6 @@
 id: "nether_shard"
+rarity: "rare"
+type: "material"
 base-item: "minecraft:prismarine_shard"
 display-name: "<red>Nether Shard"
 lore:

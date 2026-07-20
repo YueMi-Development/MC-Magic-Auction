@@ -1,4 +1,6 @@
 id: "gold_ingot"
+rarity: "uncommon"
+type: "material"
 base-item: "minecraft:gold_ingot"
 display-name: "<yellow>Gold Ingot"
 lore:

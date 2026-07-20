@@ -61,6 +61,8 @@ public final class ItemConfig {
     private final boolean virtualItem;
     private final List<String> commands;
     private final List<RewardEntry> rewards;
+    private final String rarity;
+    private final String type;
 
     private final boolean hasDisplayNameOverride;
     private final boolean hasLoreOverride;
@@ -81,7 +83,9 @@ public final class ItemConfig {
             @NotNull List<RewardEntry> rewards,
             boolean hasDisplayNameOverride,
             boolean hasLoreOverride,
-            boolean hasCustomModelDataOverride
+            boolean hasCustomModelDataOverride,
+            @NotNull String rarity,
+            @NotNull String type
     ) {
         this.id = id;
         this.baseItem = baseItem;
@@ -98,6 +102,8 @@ public final class ItemConfig {
         this.hasDisplayNameOverride = hasDisplayNameOverride;
         this.hasLoreOverride = hasLoreOverride;
         this.hasCustomModelDataOverride = hasCustomModelDataOverride;
+        this.rarity = rarity.toLowerCase();
+        this.type = type.toLowerCase();
     }
 
     @NotNull
@@ -153,6 +159,16 @@ public final class ItemConfig {
     @NotNull
     public List<RewardEntry> getRewards() {
         return rewards;
+    }
+
+    @NotNull
+    public String getRarity() {
+        return rarity;
+    }
+
+    @NotNull
+    public String getType() {
+        return type;
     }
 
     @NotNull
@@ -249,6 +265,22 @@ public final class ItemConfig {
         boolean hasLoreOverride = config.contains("lore");
         boolean hasCustomModelDataOverride = config.contains("custom-model-data");
 
+        String rarity = config.getString("rarity");
+        if (rarity == null) {
+            throw new IllegalArgumentException("Item configuration '" + id + "' is missing the required 'rarity' field!");
+        }
+        if (RarityRegistry.get(rarity) == null) {
+            throw new IllegalArgumentException("Item configuration '" + id + "' has an invalid rarity: '" + rarity + "'!");
+        }
+
+        String type = config.getString("type");
+        if (type == null) {
+            throw new IllegalArgumentException("Item configuration '" + id + "' is missing the required 'type' field!");
+        }
+        if (TypeRegistry.get(type) == null) {
+            throw new IllegalArgumentException("Item configuration '" + id + "' has an invalid type: '" + type + "'!");
+        }
+
         if (!virtualItem && rewards.isEmpty()) {
             throw new IllegalArgumentException("Non-virtual item configuration '" + id + "' must have a 'rewards' section!");
         }
@@ -256,7 +288,8 @@ public final class ItemConfig {
         return new ItemConfig(
                 id, baseItem, material, displayName, lore, width, height, 
                 customModelData, worth, virtualItem, commands, rewards,
-                hasDisplayNameOverride, hasLoreOverride, hasCustomModelDataOverride
+                hasDisplayNameOverride, hasLoreOverride, hasCustomModelDataOverride,
+                rarity, type
         );
     }
 }

@@ -1,4 +1,6 @@
 id: "golden_ticket"
+rarity: "common"
+type: "consumable"
 base-item: "minecraft:paper"
 display-name: "<yellow>Golden Ticket"
 lore:

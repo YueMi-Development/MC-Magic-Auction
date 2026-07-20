@@ -1,4 +1,6 @@
 id: "diamond_block"
+rarity: "legendary"
+type: "collectible"
 base-item: "minecraft:diamond_block"
 display-name: "<aqua>Diamond Block"
 lore:

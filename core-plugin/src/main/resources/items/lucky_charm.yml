@@ -1,4 +1,6 @@
 id: "lucky_charm"
+rarity: "uncommon"
+type: "accessory"
 base-item: "minecraft:rabbit_foot"
 display-name: "<green>Lucky Charm"
 lore:

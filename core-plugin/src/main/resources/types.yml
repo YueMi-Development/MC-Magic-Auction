@@ -1,0 +1,24 @@
+weapon:
+  name: "Weapon"
+  description: "Deals damage to enemies"
+armor:
+  name: "Armor"
+  description: "Provides defensive protection"
+tool:
+  name: "Tool"
+  description: "Useful for harvesting and mining"
+consumable:
+  name: "Consumable"
+  description: "Provides temporary buffs or healing"
+accessory:
+  name: "Accessory"
+  description: "Provides passive stat boosts"
+scroll:
+  name: "Scroll"
+  description: "Contains ancient spells or recipes"
+collectible:
+  name: "Collectible"
+  description: "Rare item for showcasing or trading"
+material:
+  name: "Material"
+  description: "Used in crafting recipes"
