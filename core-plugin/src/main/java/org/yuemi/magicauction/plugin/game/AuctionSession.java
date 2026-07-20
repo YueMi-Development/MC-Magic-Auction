@@ -33,6 +33,7 @@ public final class AuctionSession {
 
     private int currentRound = 1;
     private double currentBasePrice;
+    private int currentRevealStep = -1;
     
     // Bids for the current round
     private final Map<UUID, Double> currentBids = new HashMap<>();
@@ -141,6 +142,12 @@ public final class AuctionSession {
         broadcast("<gray>BIN (Buy It Now) Price: <gold>$" + String.format("%.2f", binPrice) + "</gold>");
         broadcast("<gray>------------------------------------");
 
+        Gui gui = buildPreviewGui();
+        for (Player player : players) {
+            if (manager.isBot(player)) continue;
+            gui.open(player);
+        }
+
         activeTask = new BukkitRunnable() {
             int timeLeft = 15;
 
@@ -151,11 +158,9 @@ public final class AuctionSession {
                     return;
                 }
 
-                // Render preview GUI
-                Gui gui = buildPreviewGui(timeLeft, binPrice);
                 for (Player player : players) {
                     if (manager.isBot(player)) continue;
-                    gui.open(player);
+                    gui.updateTitle(player, arena.getName() + " | Round " + currentRound + "/5 | Time: " + timeLeft + "s");
                 }
 
                 timeLeft--;
@@ -163,43 +168,13 @@ public final class AuctionSession {
         }.runTaskTimer(manager.getPlugin(), 0L, 20L);
     }
 
-    private Gui buildPreviewGui(int timeLeft, double binPrice) {
+    private Gui buildPreviewGui() {
         GuiApi guiApi = YueMiLibsProvider.getApi().getGui();
-        var mm = MiniMessage.miniMessage();
         
         var builder = guiApi.createBuilder()
-                .title("Auction Preview (Round " + currentRound + " - " + timeLeft + "s)")
+                .title(arena.getName() + " | Round " + currentRound + "/5")
                 .rows(6)
                 .closePolicy(ClosePolicy.REOPEN);
-
-        // Border item
-        GuiItem borderItem = guiApi.createItemBuilder()
-                .item(new ItemStack(Material.GRAY_STAINED_GLASS_PANE))
-                .onClick((p, ctx) -> ctx.getEvent().setCancelled(true))
-                .build();
-
-        // Timer/Info item
-        ItemStack timerStack = new ItemStack(Material.CLOCK);
-        ItemMeta timerMeta = timerStack.getItemMeta();
-        if (timerMeta != null) {
-            timerMeta.displayName(mm.deserialize("<green>Time Left: <yellow>" + timeLeft + "s"));
-            timerMeta.lore(List.of(
-                    mm.deserialize("<gray>Round: <yellow>" + currentRound + "/5"),
-                    mm.deserialize("<gray>BIN price: <gold>$" + String.format("%.2f", binPrice))
-            ));
-            timerStack.setItemMeta(timerMeta);
-        }
-        
-        GuiItem timerGuiItem = guiApi.createItemBuilder()
-                .item(timerStack)
-                .onClick((p, ctx) -> ctx.getEvent().setCancelled(true))
-                .build();
-
-        // Fill background
-        builder.createLayer("background", 0, layer -> {
-            layer.fill(borderItem);
-            layer.setItem(4, timerGuiItem);
-        });
 
         // Add prizes layer packed in 3x6 starting at row 1, col 1
         builder.createLayer("prizes", 1, layer -> {
@@ -475,6 +450,12 @@ public final class AuctionSession {
     private void startWinnerRevealAnimation(@NotNull Player winner) {
         var mm = MiniMessage.miniMessage();
 
+        Gui revealGui = buildRevealGui();
+        for (Player player : players) {
+            if (manager.isBot(player)) continue;
+            revealGui.open(player);
+        }
+
         activeTask = new BukkitRunnable() {
             int step = 0;
 
@@ -557,10 +538,11 @@ public final class AuctionSession {
                     return;
                 }
 
-                Gui revealGui = buildRevealGui(step);
+                currentRevealStep = step;
                 for (Player player : players) {
                     if (manager.isBot(player)) continue;
-                    revealGui.open(player);
+                    revealGui.update(player);
+                    revealGui.updateTitle(player, arena.getName() + " | Reveal Phase (" + (step + 1) + "/" + generatedPrizes.size() + ")");
                     player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0f, 1.0f);
                 }
 
@@ -569,23 +551,13 @@ public final class AuctionSession {
         }.runTaskTimer(manager.getPlugin(), 0L, 15L);
     }
 
-    private Gui buildRevealGui(int revealCount) {
+    private Gui buildRevealGui() {
         GuiApi guiApi = YueMiLibsProvider.getApi().getGui();
-        var mm = MiniMessage.miniMessage();
 
         var builder = guiApi.createBuilder()
-                .title("Auction Reveal - Winner!")
+                .title(arena.getName() + " | Auction Reveal")
                 .rows(6)
                 .closePolicy(ClosePolicy.REOPEN);
-
-        GuiItem yellowPane = guiApi.createItemBuilder()
-                .item(new ItemStack(Material.YELLOW_STAINED_GLASS_PANE))
-                .onClick((p, ctx) -> ctx.getEvent().setCancelled(true))
-                .build();
-
-        builder.createLayer("background", 0, layer -> {
-            layer.fill(yellowPane);
-        });
 
         builder.createLayer("reveal", 1, layer -> {
             for (int i = 0; i < generatedPrizes.size(); i++) {
@@ -593,24 +565,12 @@ public final class AuctionSession {
                 int[] pos = prizePositions.get(stack);
                 int slot = (1 + pos[0]) * 9 + (1 + pos[1]);
 
-                if (i <= revealCount) {
+                if (i <= currentRevealStep) {
                     GuiItem prizeItem = guiApi.createItemBuilder()
                             .item(stack)
                             .onClick((p, ctx) -> ctx.getEvent().setCancelled(true))
                             .build();
                     layer.setItem(slot, prizeItem);
-                } else {
-                    ItemStack unrevealed = new ItemStack(Material.ORANGE_STAINED_GLASS_PANE);
-                    ItemMeta meta = unrevealed.getItemMeta();
-                    if (meta != null) {
-                        meta.displayName(mm.deserialize("<gold>???"));
-                        unrevealed.setItemMeta(meta);
-                    }
-                    GuiItem unrevealedItem = guiApi.createItemBuilder()
-                            .item(unrevealed)
-                            .onClick((p, ctx) -> ctx.getEvent().setCancelled(true))
-                            .build();
-                    layer.setItem(slot, unrevealedItem);
                 }
             }
         });
