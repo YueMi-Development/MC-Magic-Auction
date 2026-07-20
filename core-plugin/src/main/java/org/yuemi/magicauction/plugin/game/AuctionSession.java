@@ -154,13 +154,18 @@ public final class AuctionSession {
             @Override
             public void run() {
                 if (timeLeft <= 0) {
+                    gui.setClosePolicy(ClosePolicy.CLOSE);
+                    for (Player player : players) {
+                        if (manager.isBot(player)) continue;
+                        player.closeInventory();
+                    }
                     startBiddingState();
                     return;
                 }
 
                 for (Player player : players) {
                     if (manager.isBot(player)) continue;
-                    gui.updateTitle(player, arena.getName() + " | Round " + currentRound + "/5 | Time: " + timeLeft + "s");
+                    gui.updateTitle(player, "Round " + currentRound + "/5 | Time: " + timeLeft + "s");
                 }
 
                 timeLeft--;
@@ -172,7 +177,7 @@ public final class AuctionSession {
         GuiApi guiApi = YueMiLibsProvider.getApi().getGui();
         
         var builder = guiApi.createBuilder()
-                .title(arena.getName() + " | Round " + currentRound + "/5")
+                .title("Round " + currentRound + "/5 | Time: 15s")
                 .rows(6)
                 .closePolicy(ClosePolicy.REOPEN);
 
@@ -542,7 +547,7 @@ public final class AuctionSession {
                 for (Player player : players) {
                     if (manager.isBot(player)) continue;
                     revealGui.update(player);
-                    revealGui.updateTitle(player, arena.getName() + " | Reveal Phase (" + (step + 1) + "/" + generatedPrizes.size() + ")");
+                    revealGui.updateTitle(player, "Auction Reveal (" + (step + 1) + "/" + generatedPrizes.size() + ")");
                     player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0f, 1.0f);
                 }
 
@@ -555,7 +560,7 @@ public final class AuctionSession {
         GuiApi guiApi = YueMiLibsProvider.getApi().getGui();
 
         var builder = guiApi.createBuilder()
-                .title(arena.getName() + " | Auction Reveal")
+                .title("Auction Reveal")
                 .rows(6)
                 .closePolicy(ClosePolicy.REOPEN);
 
