@@ -7,11 +7,26 @@ import org.yuemi.magicauction.plugin.bstats.BStatsService;
 import org.yuemi.config.api.ConfigManager;
 import org.yuemi.magicauction.plugin.game.AuctionManager;
 import org.yuemi.magicauction.plugin.commands.CommandRegistry;
+import org.jetbrains.annotations.NotNull;
 
 public final class MagicAuctionPlugin extends JavaPlugin {
 
+    private static MagicAuctionPlugin instance;
     private MagicAuctionApi api;
     private AuctionManager auctionManager;
+
+    public static MagicAuctionPlugin getInstance() {
+        return instance;
+    }
+
+    public @NotNull AuctionManager getAuctionManager() {
+        return auctionManager;
+    }
+
+    @Override
+    public void onLoad() {
+        instance = this;
+    }
 
     @Override
     public void onEnable() {

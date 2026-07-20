@@ -6,6 +6,7 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.yuemi.magicauction.plugin.config.ArenaConfig;
 import org.yuemi.magicauction.plugin.game.AuctionManager;
+import org.yuemi.magicauction.bot.BotHandler;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 
 import java.util.ArrayList;
@@ -87,13 +88,24 @@ public final class StartSubCommand implements SubCommand {
 
         // Resolve players
         List<Player> targetPlayers = new ArrayList<>();
+        int botCount = 0;
         for (String name : playerNames) {
-            Player p = Bukkit.getPlayerExact(name);
-            if (p == null) {
-                sender.sendMessage(mm.deserialize("<red>Player not online: " + name));
-                return;
+            if ("_BOT_".equalsIgnoreCase(name)) {
+                var botHandler = auctionManager.getBotHandler();
+                if (botHandler == null) {
+                    sender.sendMessage(mm.deserialize("<red>Bot handler is not registered! Cannot spawn bots. Make sure MagicAuctionBot is enabled."));
+                    return;
+                }
+                botCount++;
+                targetPlayers.add(botHandler.createBot("Bot " + botCount));
+            } else {
+                Player p = Bukkit.getPlayerExact(name);
+                if (p == null) {
+                    sender.sendMessage(mm.deserialize("<red>Player not online: " + name));
+                    return;
+                }
+                targetPlayers.add(p);
             }
-            targetPlayers.add(p);
         }
 
         if (targetPlayers.size() != 4) {

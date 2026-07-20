@@ -4,6 +4,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.yuemi.magicauction.bot.BotHandler;
+import org.yuemi.magicauction.bot.BotProviderImpl;
 import org.yuemi.magicauction.plugin.config.ArenaConfig;
 import org.yuemi.magicauction.plugin.config.ItemConfig;
 
@@ -16,9 +18,23 @@ public final class AuctionManager {
     private final Map<String, ItemConfig> items = new HashMap<>();
     private final Map<String, ArenaConfig> arenas = new HashMap<>();
     private final List<AuctionSession> activeSessions = new ArrayList<>();
+    private BotHandler botHandler;
 
     public AuctionManager(@NotNull JavaPlugin plugin) {
         this.plugin = plugin;
+    }
+
+    public void setBotHandler(@Nullable BotHandler handler) {
+        this.botHandler = handler;
+    }
+
+    @Nullable
+    public BotHandler getBotHandler() {
+        return botHandler;
+    }
+
+    public boolean isBot(@NotNull Player player) {
+        return botHandler != null && botHandler.isBot(player);
     }
 
     @NotNull
@@ -27,6 +43,7 @@ public final class AuctionManager {
     }
 
     public void initialize() {
+        this.botHandler = new BotProviderImpl();
         createDirectoriesAndDefaults();
         reload();
     }

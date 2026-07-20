@@ -36,6 +36,7 @@ dependencies {
     implementation("org.bstats:bstats-bukkit:3.2.1")
     implementation("org.yuemi:mc-config-libs:1.0.1")
     implementation(project(":core-api"))
+    implementation(project(":module-bot"))
     compileOnly("io.papermc.paper:paper-api:$paperApiVersion")
     compileOnly("org.yuemi:YueMiLibs-api:$yuemiLibsApiVersion")
 }

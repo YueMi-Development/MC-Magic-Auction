@@ -154,6 +154,7 @@ public final class AuctionSession {
                 // Render preview GUI
                 Gui gui = buildPreviewGui(timeLeft, binPrice);
                 for (Player player : players) {
+                    if (manager.isBot(player)) continue;
                     gui.open(player);
                 }
 
@@ -226,7 +227,22 @@ public final class AuctionSession {
         double binPrice = currentBasePrice * multiplier;
 
         for (Player player : players) {
-            openSinglePlayerBidding(player, binPrice);
+            if (manager.isBot(player)) {
+                // Simulate bot bidding after a delay (1-3 seconds)
+                Bukkit.getScheduler().runTaskLater(manager.getPlugin(), () -> {
+                    if (!currentBids.containsKey(player.getUniqueId())) {
+                        double botBid = simulateBotBid(binPrice);
+                        currentBids.put(player.getUniqueId(), botBid);
+                        broadcast("<gray>" + player.getName() + " has submitted their bid.");
+                        
+                        if (currentBids.size() >= players.size()) {
+                            startGraphicsState();
+                        }
+                    }
+                }, 20L + (long) (Math.random() * 40L));
+            } else {
+                openSinglePlayerBidding(player, binPrice);
+            }
         }
     }
 
@@ -316,6 +332,7 @@ public final class AuctionSession {
 
                 Gui graphGui = buildGraphGui(progress, binPrice);
                 for (Player player : players) {
+                    if (manager.isBot(player)) continue;
                     graphGui.open(player);
                     player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1.0f, 0.5f + (progress * 0.1f));
                 }
@@ -437,7 +454,7 @@ public final class AuctionSession {
         if (winner != null) {
             EconomyApi econ = YueMiLibsProvider.getApi().getEconomy();
             var provider = econ.getActiveProvider();
-            if (provider != null) {
+            if (provider != null && !manager.isBot(winner)) {
                 provider.withdraw(winner, highestBid);
             }
 
@@ -470,13 +487,14 @@ public final class AuctionSession {
                     EconomyApi econ = YueMiLibsProvider.getApi().getEconomy();
                     var provider = econ.getActiveProvider();
                     
+                    boolean isBotWinner = manager.isBot(winner);
                     for (ItemStack stack : generatedPrizes) {
                         ItemConfig config = prizeConfigs.get(stack);
                         if (config != null) {
                             if (config.isVirtualItem()) {
                                 // Virtual Item: Award worth to economy
                                 double totalWorth = config.getWorth() * stack.getAmount();
-                                if (provider != null) {
+                                if (provider != null && !isBotWinner) {
                                     provider.deposit(winner, totalWorth);
                                     winner.sendMessage(mm.deserialize("<green>Awarded <gold>$" + totalWorth + "</gold> for virtual item: <yellow>" + config.getDisplayName() + "</yellow> (Worth: $" + config.getWorth() + " each)"));
                                 }
@@ -489,7 +507,7 @@ public final class AuctionSession {
                                         for (int a = 0; a < runCount; a++) {
                                             Bukkit.dispatchCommand(Bukkit.getConsoleSender(), processedCmd);
                                         }
-                                    } else if ("item".equalsIgnoreCase(reward.getType()) && reward.getItemId() != null) {
+                                    } else if ("item".equalsIgnoreCase(reward.getType()) && reward.getItemId() != null && !isBotWinner) {
                                         int totalAmount = reward.getAmount() * stack.getAmount();
                                         ItemStack rewardStack = null;
                                         
@@ -517,9 +535,11 @@ public final class AuctionSession {
                                         }
                                     }
                                 }
-                                winner.sendMessage(mm.deserialize("<green>Received rewards for: <yellow>" + config.getDisplayName()));
+                                if (!isBotWinner) {
+                                    winner.sendMessage(mm.deserialize("<green>Received rewards for: <yellow>" + config.getDisplayName()));
+                                }
                             }
-                        } else {
+                        } else if (!isBotWinner) {
                             // Vanilla physical item fallback
                             Map<Integer, ItemStack> leftover = winner.getInventory().addItem(stack);
                             for (ItemStack leftoverItem : leftover.values()) {
@@ -539,6 +559,7 @@ public final class AuctionSession {
 
                 Gui revealGui = buildRevealGui(step);
                 for (Player player : players) {
+                    if (manager.isBot(player)) continue;
                     revealGui.open(player);
                     player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0f, 1.0f);
                 }
@@ -618,9 +639,26 @@ public final class AuctionSession {
         }
     }
 
+    private double simulateBotBid(double binPrice) {
+        double roll = random.nextDouble();
+        if (roll < 0.10) {
+            return binPrice;
+        } else if (roll < 0.85) {
+            double minBid = currentBasePrice;
+            double maxBid = binPrice - 1.0;
+            if (maxBid <= minBid) {
+                return minBid;
+            }
+            return Math.floor(minBid + random.nextDouble() * (maxBid - minBid));
+        } else {
+            return 0.0;
+        }
+    }
+
     private void endSession() {
         cancelActiveTask();
         for (Player player : players) {
+            if (manager.isBot(player)) continue;
             player.closeInventory();
         }
         manager.sessionEnded(this);
