@@ -171,7 +171,7 @@ public final class AuctionSession {
 
                 for (Player player : players) {
                     if (manager.isBot(player)) continue;
-                    gui.updateTitle(player, "Round " + currentRound + "/" + arena.getMultipliers().size() + " | Time: " + timeLeft + "s");
+                    gui.updateTitle(player, getRoundTitle(" | Time: " + timeLeft + "s"));
                 }
 
                 timeLeft--;
@@ -183,7 +183,7 @@ public final class AuctionSession {
         GuiApi guiApi = YueMiLibsProvider.getApi().getGui();
         
         var builder = guiApi.createBuilder()
-                .title("Round " + currentRound + "/" + arena.getMultipliers().size() + " | Time: " + arena.getThinkingTime() + "s")
+                .title(getRoundTitle(" | Time: " + arena.getThinkingTime() + "s"))
                 .rows(6)
                 .closePolicy(ClosePolicy.REOPEN);
 
@@ -404,8 +404,9 @@ public final class AuctionSession {
         GuiApi guiApi = YueMiLibsProvider.getApi().getGui();
         var mm = MiniMessage.miniMessage();
 
+        String graphTitle = "Bidding Progress (" + (currentRound > arena.getMultipliers().size() ? "\u00A7lBONUS" : "Round " + currentRound) + ")";
         var builder = guiApi.createBuilder()
-                .title("Bidding Progress (Round " + currentRound + ")")
+                .title(graphTitle)
                 .rows(6)
                 .closePolicy(ClosePolicy.REOPEN);
 
@@ -745,6 +746,15 @@ public final class AuctionSession {
             mult = arena.getMultipliers().get(currentRound - 1);
         }
         return Math.max(1.0, Math.min(10.0, mult));
+    }
+
+    private String getRoundTitle(String suffix) {
+        boolean isBonus = currentRound > arena.getMultipliers().size();
+        if (isBonus) {
+            return "\u00A7lBONUS" + suffix;
+        } else {
+            return "Round " + currentRound + "/" + arena.getMultipliers().size() + suffix;
+        }
     }
 
     private void broadcast(String message) {
