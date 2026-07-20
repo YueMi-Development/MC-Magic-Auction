@@ -448,17 +448,24 @@ public final class AuctionSession {
                 int row = i + 1;
                 layer.setItem(row * 9, skullGuiItem);
 
-                double fraction = bid / binPrice;
+                int length;
+                if (bid < 1.0) {
+                    length = 1;
+                } else if (bid >= binPrice) {
+                    length = 7;
+                } else {
+                    length = 1 + (int) Math.round((bid / binPrice) * 6);
+                    length = Math.max(1, Math.min(7, length));
+                }
+
                 for (int colIndex = 2; colIndex <= 8; colIndex++) {
                     int step = colIndex - 1;
                     
                     Material progressMaterial;
                     if (bid >= binPrice) {
                         progressMaterial = Material.LIME_STAINED_GLASS_PANE;
-                    } else if (bid > 0 && fraction * 7 >= step) {
+                    } else if (bid >= 1.0) {
                         progressMaterial = Material.YELLOW_STAINED_GLASS_PANE;
-                    } else if (bid > 0) {
-                        progressMaterial = Material.LIGHT_GRAY_STAINED_GLASS_PANE;
                     } else {
                         progressMaterial = Material.RED_STAINED_GLASS_PANE;
                     }
@@ -471,9 +478,10 @@ public final class AuctionSession {
                     }
 
                     final int stepVal = step;
+                    final int finalLength = length;
                     GuiItem paneGuiItem = guiApi.createItemBuilder()
                             .item(pane)
-                            .condition(player -> stepVal <= currentGraphProgress)
+                            .condition(player -> stepVal <= finalLength && stepVal <= currentGraphProgress)
                             .onClick((pl, ctx) -> ctx.getEvent().setCancelled(true))
                             .build();
 
