@@ -35,6 +35,7 @@ public final class AuctionSession {
     private double currentBasePrice;
     private int currentRevealStep = -1;
     private int currentGraphProgress = 0;
+    private Gui graphGui;
     
     // Bids for the current round
     private final Map<UUID, Double> currentBids = new HashMap<>();
@@ -296,10 +297,10 @@ public final class AuctionSession {
         double binPrice = currentBasePrice * multiplier;
 
         currentGraphProgress = 0;
-        Gui graphGui = buildGraphGui(binPrice);
+        this.graphGui = buildGraphGui(binPrice);
         for (Player player : players) {
             if (manager.isBot(player)) continue;
-            graphGui.open(player);
+            this.graphGui.open(player);
         }
 
         activeTask = new BukkitRunnable() {
@@ -309,6 +310,7 @@ public final class AuctionSession {
             public void run() {
                 if (progress > 7) {
                     cancel();
+                    closeGraphGui();
                     activeTask = new BukkitRunnable() {
                         @Override
                         public void run() {
@@ -611,6 +613,17 @@ public final class AuctionSession {
         }
     }
 
+    private void closeGraphGui() {
+        if (graphGui != null) {
+            graphGui.setClosePolicy(ClosePolicy.CLOSE);
+            for (Player player : players) {
+                if (manager.isBot(player)) continue;
+                player.closeInventory();
+            }
+            graphGui = null;
+        }
+    }
+
     private double simulateBotBid(double binPrice) {
         double roll = random.nextDouble();
         if (roll < 0.10) {
@@ -629,6 +642,7 @@ public final class AuctionSession {
 
     private void endSession() {
         cancelActiveTask();
+        closeGraphGui();
         for (Player player : players) {
             if (manager.isBot(player)) continue;
             player.closeInventory();
