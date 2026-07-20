@@ -1,0 +1,1 @@
+typeSearchIndex = [{"l":"All Classes and Interfaces","u":"allclasses-index.html"},{"p":"org.yuemi.magicauction.api","l":"MagicAuctionApi"},{"p":"org.yuemi.magicauction.api","l":"MagicAuctionApiProvider"}];updateSearchResults();
