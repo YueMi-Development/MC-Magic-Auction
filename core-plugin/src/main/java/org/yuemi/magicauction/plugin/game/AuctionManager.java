@@ -33,27 +33,27 @@ public final class AuctionManager {
 
     private void createDirectoriesAndDefaults() {
         File dataFolder = plugin.getDataFolder();
-        File itemsFolder = new File(dataFolder, "items");
-        File auctionFolder = new File(dataFolder, "auction");
+        java.net.URL jarUrl = plugin.getClass().getProtectionDomain().getCodeSource().getLocation();
+        if (jarUrl == null) return;
 
-        if (!itemsFolder.exists()) {
-            itemsFolder.mkdirs();
-            // Copy default items
-            plugin.saveResource("items/mysterious_box.yml", false);
-            plugin.saveResource("items/golden_ticket.yml", false);
-            plugin.saveResource("items/nether_shard.yml", false);
-            plugin.saveResource("items/ancient_scroll.yml", false);
-            plugin.saveResource("items/lucky_charm.yml", false);
-            plugin.saveResource("items/diamond_block.yml", false);
-            plugin.saveResource("items/netherite_ingot.yml", false);
-            plugin.saveResource("items/gold_ingot.yml", false);
-        }
-
-        if (!auctionFolder.exists()) {
-            auctionFolder.mkdirs();
-            // Copy default arenas
-            plugin.saveResource("auction/arena1.yml", false);
-            plugin.saveResource("auction/arena2.yml", false);
+        try (java.util.zip.ZipInputStream zip = new java.util.zip.ZipInputStream(jarUrl.openStream())) {
+            java.util.zip.ZipEntry entry;
+            while ((entry = zip.getNextEntry()) != null) {
+                String name = entry.getName();
+                if (!entry.isDirectory() && (name.startsWith("items/") || name.startsWith("auction/")) && name.endsWith(".yml")) {
+                    File outFile = new File(dataFolder, name);
+                    if (!outFile.exists()) {
+                        outFile.getParentFile().mkdirs();
+                        try {
+                            plugin.saveResource(name, false);
+                        } catch (IllegalArgumentException ignored) {
+                            // Suppress exception if resource doesn't exist or already exists
+                        }
+                    }
+                }
+            }
+        } catch (java.io.IOException e) {
+            plugin.getLogger().warning("Failed to auto-discover default resources from JAR: " + e.getMessage());
         }
     }
 
