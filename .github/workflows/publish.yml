@@ -1,0 +1,236 @@
+name: Publish API
+
+on:
+  push:
+    branches:
+      - "v*"
+
+jobs:
+  # ── Quick compile check ────────────────────────────────────
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+
+      - name: Grant gradlew permission
+        run: chmod +x gradlew
+
+      - name: Compile all modules
+        run: ./gradlew clean compileJava compileTestJava --no-daemon
+
+  # ── Sync version & contributors (pushes commits) ───────────
+  prepare:
+    needs: validate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Git User
+        run: |
+          git config --global user.email "action@github.com"
+          git config --global user.name "GitHub Action"
+
+      - name: Set contributors list
+        run: |
+          CONTRIBUTORS=$(curl -s https://api.github.com/repos/${{ github.repository }}/contributors \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            | jq -r '.[].login' | paste -sd "," -)
+          if grep -q "^contributors=" gradle.properties; then
+            sed -i "s/^contributors=.*/contributors=$CONTRIBUTORS/" gradle.properties
+          else
+            echo "contributors=$CONTRIBUTORS" >> gradle.properties
+          fi
+          echo "Contributors: $CONTRIBUTORS"
+          git add gradle.properties
+          git commit -m "chore: update contributors list"
+          git push origin HEAD:${{ github.ref_name }}
+
+      - name: Verify and Update Version
+        run: |
+          BRANCH_VERSION=$(echo "${{ github.ref_name }}" | sed 's/^v//')
+          GRADLE_VERSION=$(grep "^version=" gradle.properties | cut -d'=' -f2)
+          echo "Branch version: $BRANCH_VERSION"
+          echo "Gradle version: $GRADLE_VERSION"
+          if [ "$BRANCH_VERSION" != "$GRADLE_VERSION" ]; then
+            echo "Versions differ. Updating gradle.properties..."
+            sed -i "s/^version=.*/version=$BRANCH_VERSION/" gradle.properties
+            git add gradle.properties
+            git commit -m "chore: update version to $BRANCH_VERSION"
+            git push origin HEAD:${{ github.ref_name }}
+          else
+            echo "Versions match. No update needed."
+          fi
+
+  # ── Publish API to Maven & build plugin JAR ────────────────
+  publish:
+    needs: prepare
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # prepare job may have pushed commits; sync to the latest
+      - name: Sync to latest branch state
+        run: |
+          git fetch origin ${{ github.ref_name }}
+          git reset --hard origin/${{ github.ref_name }}
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+
+      - name: Grant gradlew permission
+        run: chmod +x gradlew
+
+      - name: Publish API to Yuemi Maven
+        env:
+          MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
+          MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
+        run: ./gradlew :core-api:publish --no-daemon
+
+      - name: Build shaded plugin JAR
+        run: ./gradlew :core-plugin:shadowJar -x test --no-daemon
+
+      - name: Generate Javadocs
+        run: ./gradlew :core-api:javadoc --no-daemon
+
+      - name: Upload plugin JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: plugin-jar
+          path: core-plugin/build/libs/*.jar
+          retention-days: 30
+
+      - name: Upload javadocs
+        uses: actions/upload-artifact@v4
+        with:
+          name: javadocs
+          path: core-api/build/docs/javadoc/
+          retention-days: 30
+
+  # ── Release to Modrinth & GitHub ───────────────────────────
+  release:
+    needs: publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Sync to latest branch state
+        run: |
+          git fetch origin ${{ github.ref_name }}
+          git reset --hard origin/${{ github.ref_name }}
+
+      - name: Download plugin JAR
+        uses: actions/download-artifact@v4
+        with:
+          name: plugin-jar
+          path: core-plugin/build/libs
+
+      - name: Download javadocs
+        uses: actions/download-artifact@v4
+        with:
+          name: javadocs
+          path: core-api/build/docs/javadoc
+
+      - name: Deploy Javadocs to GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: core-api/build/docs/javadoc
+          branch: gh-pages
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Convert modrinth.json5 to JSON
+        run: npx -y json5 modrinth.json5 -o modrinth.json
+
+      - name: Read Modrinth Configuration
+        id: modrinth_config
+        run: |
+          PROJECT_ID=$(jq -r '.projectId' modrinth.json)
+          LOADERS=$(jq -c '.loaders' modrinth.json)
+          GAME_VERSIONS=$(jq -c '.gameVersions' modrinth.json)
+
+          # Clean version from the branch (which starts with v)
+          BRANCH_NAME="${{ github.ref_name }}"
+          VERSION_NUMBER=$(echo "$BRANCH_NAME" | sed 's/^v//')
+
+          # Find the built JAR file
+          JAR_PATH=$(find core-plugin/build/libs -name "*.jar" ! -name "*-plain.jar" | head -n 1)
+
+          echo "project_id=$PROJECT_ID" >> $GITHUB_OUTPUT
+          echo "loaders=$LOADERS" >> $GITHUB_OUTPUT
+          echo "game_versions=$GAME_VERSIONS" >> $GITHUB_OUTPUT
+          echo "version=$VERSION_NUMBER" >> $GITHUB_OUTPUT
+          echo "jar_path=$JAR_PATH" >> $GITHUB_OUTPUT
+
+      - name: Generate Changelog
+        id: changelog
+        run: |
+          git fetch --tags --force
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || true)
+          if [ -z "$PREV_TAG" ]; then
+            echo "No previous tag found. Generating changelog from all commits."
+            CHANGELOG=$(git log --pretty=format:"* %s (%h)" HEAD)
+          else
+            echo "Generating changelog between $PREV_TAG and HEAD."
+            CHANGELOG=$(git log --pretty=format:"* %s (%h)" $PREV_TAG..HEAD)
+          fi
+
+          # Write to GITHUB_OUTPUT
+          {
+            echo "changelog<<EOF"
+            echo "$CHANGELOG"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Publish to Modrinth
+        uses: cloudnode-pro/modrinth-publish@v2.4.1
+        with:
+          token: ${{ secrets.MODRINTH_TOKEN }}
+          project: ${{ steps.modrinth_config.outputs.project_id }}
+          version: ${{ steps.modrinth_config.outputs.version }}
+          loaders: ${{ steps.modrinth_config.outputs.loaders }}
+          game-versions: ${{ steps.modrinth_config.outputs.game_versions }}
+          files: ${{ steps.modrinth_config.outputs.jar_path }}
+          changelog: ${{ steps.changelog.outputs.changelog }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          files: ${{ steps.modrinth_config.outputs.jar_path }}
+          body: ${{ steps.changelog.outputs.changelog }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

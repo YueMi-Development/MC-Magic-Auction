@@ -1,0 +1,19 @@
+# Ignore Gradle project-specific cache directory
+.gradle
+.vscode
+
+# Ignore Gradle build output directory
+build
+bin
+
+# Ignore Files
+*.log
+*.zip
+*.tar.gz
+*.iml
+.idea/
+.DS_Store
+out/
+logs/
+temp/
+tmp/

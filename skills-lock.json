@@ -1,0 +1,60 @@
+{
+  "version": 1,
+  "skills": {
+    "coding-standard-java": {
+      "source": "jdubray/puffin",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/coding-standard-java/SKILL.md",
+      "computedHash": "9f15c02cc6722dcc12092a7238fb6079471c6401ce5cca0cca526f6357a7e337"
+    },
+    "commit-work": {
+      "source": "softaworks/agent-toolkit",
+      "sourceType": "github",
+      "computedHash": "c9362cbf8d20af2fba1789a57c27e94cf063c0cbe659f40898d31d2afa3b1cb8"
+    },
+    "debugging-strategies": {
+      "source": "wshobson/agents",
+      "sourceType": "github",
+      "computedHash": "d7d8542d2205ebdb547d14dab24f467e334f73cfb30c4458888f5431713ca82d"
+    },
+    "dependency-updater": {
+      "source": "softaworks/agent-toolkit",
+      "sourceType": "github",
+      "computedHash": "3fc648ed28dfce104c7749318489af2c388de99dde2d85c145a4e028d994db41"
+    },
+    "humanizer": {
+      "source": "softaworks/agent-toolkit",
+      "sourceType": "github",
+      "computedHash": "c948e831d5fdfbe2e1fbbba1ebf8ab410a8f077ba529ddd522fd9ae40e6cc653"
+    },
+    "java-concurrency": {
+      "source": "pluginagentmarketplace/custom-plugin-java",
+      "sourceType": "github",
+      "skillPath": "skills/java-concurrency/SKILL.md",
+      "computedHash": "30a6a2994542103db7fb3b1531c742dd1e6b4801ca05db714a02099a28a385de"
+    },
+    "java-fundamentals": {
+      "source": "pluginagentmarketplace/custom-plugin-java",
+      "sourceType": "github",
+      "skillPath": "skills/java-fundamentals/SKILL.md",
+      "computedHash": "ac351c260ab6c76ba8f728103dfcd432e16b5e2d28428c8684cf451c7f83e071"
+    },
+    "java-gradle": {
+      "source": "pluginagentmarketplace/custom-plugin-java",
+      "sourceType": "github",
+      "skillPath": "skills/java-gradle/SKILL.md",
+      "computedHash": "26d0d5576aa368eb8ab2cca872040820de23a0f611d8871d3e09aa910de8461d"
+    },
+    "java-performance": {
+      "source": "pluginagentmarketplace/custom-plugin-java",
+      "sourceType": "github",
+      "skillPath": "skills/java-performance/SKILL.md",
+      "computedHash": "e24625f8183d1615bcca5185796e943aecf84ce099b2683f4c7e40f92c9fdb01"
+    },
+    "minecraft-bukkit-pro": {
+      "source": "rmyndharis/antigravity-skills",
+      "sourceType": "github",
+      "computedHash": "9554042e1d088893e73554e0e44cd8e2251aede92f27810f0cb72e6c89e9a85a"
+    }
+  }
+}

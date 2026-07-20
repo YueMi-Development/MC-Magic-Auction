@@ -1,0 +1,35 @@
+{
+  "projectId": "YOUR_PROJECT_ID_OR_SLUG",
+  "loaders": [
+    "paper", "folia"
+  ],
+  "gameVersions": [
+    "1.21.4",
+    "1.21.3",
+    "1.21.2",
+    "1.21.1",
+    "1.21"
+  ],
+  "dependencies": [
+    {
+      "projectId": "your-dependency-id",
+      "versionId": "your-version-id",
+      "fileName": "your-file-name",
+      "dependencyType": "required"
+    },
+    {
+      "projectId": "your-dependency-id",
+      "versionId": "your-version-id",
+      "fileName": "your-file-name",
+      "dependencyType": "optional"
+    },
+    {
+      "projectId": "your-dependency-id",
+      "dependencyType": "incompatible"
+    },
+    {
+      "projectId": "your-dependency-id",
+      "dependencyType": "embedded"
+    }
+  ]
+}
