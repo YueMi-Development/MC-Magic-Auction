@@ -201,10 +201,10 @@ jobs:
           PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || true)
           if [ -z "$PREV_TAG" ]; then
             echo "No previous tag found. Generating changelog from all commits."
-            CHANGELOG=$(git log --pretty=format:"* %s (%h)" HEAD)
+            CHANGELOG=$(git log --pretty=format:"* %s (%h)" HEAD | grep -i -v -E "GitHub Action|action@github.com|chore: update contributors|chore: update version" || true)
           else
             echo "Generating changelog between $PREV_TAG and HEAD."
-            CHANGELOG=$(git log --pretty=format:"* %s (%h)" $PREV_TAG..HEAD)
+            CHANGELOG=$(git log --pretty=format:"* %s (%h)" $PREV_TAG..HEAD | grep -i -v -E "GitHub Action|action@github.com|chore: update contributors|chore: update version" || true)
           fi
 
           # Write to GITHUB_OUTPUT
