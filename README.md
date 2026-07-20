@@ -82,9 +82,3 @@ This project uses a multi-module structure to separate the API interface from th
 
 - **[core-api](file:///f:/Github-Repository/MC-Magic-Auction/core-api)**: Provides public interfaces and constants. Other plugins can depend on this API without pulling in implementation logic.
 - **[core-plugin](file:///f:/Github-Repository/MC-Magic-Auction/core-plugin)**: Contains the main plugin implementation, listeners, and shaded dependencies (including `core-api`, `mc-config-libs`, and `bStats`).
-
-### Key Dependencies
-- **Paper API (1.21+)** - Server Platform API
-- **YueMiLibs** - Runtime library dependency
-- **mc-config-libs** - Configuration file management & migration framework
-- **bStats** - Metrics collection
