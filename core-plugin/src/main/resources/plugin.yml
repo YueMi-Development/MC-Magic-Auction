@@ -5,4 +5,8 @@ authors: [${authors}]
 contributors: [${contributors}]
 api-version: '${apiVersion}'
 
+depend: [
+  YueMiLibs
+]
+
 bstats-id: '${bstatsPluginId}'

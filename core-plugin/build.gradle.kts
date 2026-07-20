@@ -11,6 +11,8 @@ val apiVersion: String by project
 val authors: String by project
 val contributors: String by project
 val pluginVersion: String = project.version.toString()
+val paperApiVersion: String by project
+val yuemiLibsApiVersion: String by project
 
 tasks.processResources {
     val bstatsPluginId = project.findProperty("bstatsPluginId") as? String ?: ""
@@ -34,7 +36,8 @@ dependencies {
     implementation("org.bstats:bstats-bukkit:3.2.1")
     implementation("org.yuemi:mc-config-libs:1.0.1")
     implementation(project(":core-api"))
-    compileOnly("io.papermc.paper:paper-api:1.21.6-R0.1-SNAPSHOT")
+    compileOnly("io.papermc.paper:paper-api:$paperApiVersion")
+    compileOnly("org.yuemi:YueMiLibs-api:$yuemiLibsApiVersion")
 }
 
 tasks.withType<JavaCompile>().configureEach {

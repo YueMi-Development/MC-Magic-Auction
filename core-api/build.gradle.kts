@@ -9,6 +9,8 @@ val yuemiMavenRelease: String by project
 val repoUrl: String by project
 val developerId: String by project
 val developerName: String by project
+val paperApiVersion: String by project
+val yuemiLibsApiVersion: String by project
 
 require(pluginName.isNotBlank())
 require(yuemiMavenSnapshot.isNotBlank())
@@ -16,9 +18,12 @@ require(yuemiMavenRelease.isNotBlank())
 require(repoUrl.isNotBlank())
 require(developerId.isNotBlank())
 require(developerName.isNotBlank())
+require(paperApiVersion.isNotBlank())
+require(yuemiLibsApiVersion.isNotBlank())
 
 dependencies {
-    compileOnly("io.papermc.paper:paper-api:1.21.6-R0.1-SNAPSHOT")
+    compileOnly("io.papermc.paper:paper-api:$paperApiVersion")
+    compileOnly("org.yuemi:YueMiLibs-api:$yuemiLibsApiVersion")
 }
 
 java {
