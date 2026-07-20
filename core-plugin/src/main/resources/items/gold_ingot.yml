@@ -1,0 +1,14 @@
+id: "gold_ingot"
+base-item: "minecraft:gold_ingot"
+display-name: "<yellow>Gold Ingot"
+lore:
+  - "<gray>A shiny ingot of pure gold."
+width: 1
+height: 1
+custom-model-data: 0
+worth: 100.0
+virtual-item: false
+rewards:
+  - type: "item"
+    id: "minecraft:gold_ingot"
+    amount: 1

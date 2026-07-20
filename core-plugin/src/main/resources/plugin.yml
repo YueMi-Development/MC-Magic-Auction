@@ -10,3 +10,9 @@ depend: [
 ]
 
 bstats-id: '${bstatsPluginId}'
+
+commands:
+  magicauction:
+    description: "Main command for Magic Auction"
+    permission: "magicauction.admin"
+    usage: "/magicauction"

@@ -1,0 +1,17 @@
+id: "lucky_charm"
+base-item: "minecraft:rabbit_foot"
+display-name: "<green>Lucky Charm"
+lore:
+  - "<gray>Increases your bidding luck by 7%!"
+  - "<dark_gray>Size: 1x1"
+width: 1
+height: 1
+custom-model-data: 1004
+worth: 75.0
+virtual-item: false
+rewards:
+  - type: "command"
+    value: "effect give %player% minecraft:luck 60 1"
+  - type: "item"
+    id: "gold_ingot"
+    amount: 3

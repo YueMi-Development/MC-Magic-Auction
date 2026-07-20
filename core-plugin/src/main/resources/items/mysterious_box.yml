@@ -1,0 +1,21 @@
+id: "mysterious_box"
+base-item: "minecraft:chest"
+display-name: "<gold>Mysterious Box"
+lore:
+  - "<gray>A mysterious container containing unknown treasure!"
+  - "<dark_gray>Size: 2x2"
+width: 2
+height: 2
+custom-model-data: 0
+worth: 300.0
+virtual-item: false
+rewards:
+  - type: "item"
+    id: "golden_ticket"
+    amount: 2
+  - type: "item"
+    id: "lucky_charm"
+    amount: 1
+  - type: "item"
+    id: "diamond_block"
+    amount: 2

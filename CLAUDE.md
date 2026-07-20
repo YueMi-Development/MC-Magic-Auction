@@ -72,45 +72,26 @@ flowchart TD
 
 All round counts and multipliers should be configurable via `config.yml` so server admins can customize the pacing.
 
-## Architecture
-
-### Module Layout (multi-module Gradle)
-
-```
-MC-Magic-Auction/
-├── core-api/            # Public API — interfaces + constants, shaded into plugin
-│   └── src/main/java/org/yuemi/magicauction/api/
-│       ├── MagicAuctionApi.java           # Plugin service interface
-│       └── MagicAuctionApiProvider.java    # Service-registry entry point
-├── core-plugin/         # Implementation JAR — shaded, server-deployable
-│   └── src/main/java/org/yuemi/magicauction/plugin/
-│       ├── MagicAuctionPlugin.java         # JavaPlugin entry point (onEnable/onDisable)
-│       ├── MagicAuctionApiImpl.java        # API implementation
-│       ├── bstats/BStatsService.java       # bStats metrics init
-│       └── config/migrations/MigrationV1ToV2.java  # Config migration example
-└── build.gradle.kts     # Root — sets Java 21, Paper repo, Yuemi repos
-```
-
-- **core-api** (`org.yuemi.magicauction.api`) — `compileOnly` Paper API. Published to Yuemi Maven for other plugins to depend on.
-- **core-plugin** (`org.yuemi.magicauction.plugin`) — Shadow-shades `core-api` + bStats + mc-config-libs into a single JAR. This is what goes on the server.
-
 ### Plugin Lifecycle
 
-- **onEnable:** Initializes config via `ConfigManager` (with migration path), starts bStats, creates `MagicAuctionApiImpl`, registers it as a Bukkit service (normal priority).
+- **onEnable:** Initializes config, copies default resources for `auction/` and `items/`, starts `AuctionManager`, registers commands via `CommandRegistry`, and exposes `MagicAuctionApi` service.
 - **onDisable:** Unregisters the API service.
 
-### Config Migration System
+### Config & Item Resolution
 
-Uses `mc-config-libs` — each migration step implements `MigrationStep` (from `org.yuemi.config.api`). Migrations live in `org.yuemi.magicauction.plugin.config.migrations` and the `ConfigManager` auto-discovers them by package scan.
+- **3x6 Grid Packing**: Inside the 6x9 chest preview GUI, items are packed in a 3x6 container offset (starts Row 1, Column 1) starting from the top-left available position. Items specify width and height and cannot overlap or exceed boundaries.
+- **Seed System**: When starting an auction, an optional seed can be passed. If it is `<= 0` (including `-1` or other negative values) or omitted, a random positive seed is generated. Shuffling and packing of prizes is governed by a `java.util.Random` initialized with this seed to guarantee deterministic layout reproduction.
+- **Base Item Resolution & Overrides**: Every custom item config defined under `items/` must specify a `base-item` resolved dynamically via YueMiLibs. Name, lore, and custom model data overrides are conditionally applied to the base item stack.
+- **Prizes & Rewards Resolution**: Arena rewards and container items are resolved strictly from the local `items/` directory configuration first.
+  - If a custom item is virtual, the winner receives its `worth` directly in their economy balance.
+  - If a custom item is non-virtual, its `rewards` section is mandatory, containing either commands (e.g. `type: "command"`, `value: "..."`) or YueMiLibs item keys (e.g. `type: "item"`, `id: "..."`). Non-virtual custom items are never physically awarded directly; only their nested `rewards` are distributed on win.
 
 ## Key Conventions
 
 - **Package:** `org.yuemi.magicauction.(api|plugin).*`
-- **API in `core-api`** (package `api`), implementation in `core-plugin` (package `plugin`)
-- **Service registration:** API registered via Bukkit ServicesManager (not a static getter) — consumers look it up with `bukkit.getServicesManager().load(MagicAuctionApi.class)`
-- **Messages:** Uses Adventure MiniMessage (`MiniMessage.miniMessage().deserialize(...)`) — not legacy text formatting
-- **Feature gating:** Permission-based (`magicauction.feature`)
-- **Shadow/relocation:** bStats → `org.yuemi.libs.bstats`, mc-config → `org.yuemi.libs.config`
+- **Commands Packaging:** Root commands in `commands/`, subcommands in `commands/subcommands/` (one file per subcommand), registered via `CommandRegistry`.
+- **YueMiLibs Integration:** Uses `YueMiLibsProvider.getApi()` to resolve economy, items, and layered GUI builders.
+- **Messages:** Uses Adventure MiniMessage for rich text formatting.
 - **Java 21, Gradle 8.13, Kotlin DSL**
 
 ## CI/CD

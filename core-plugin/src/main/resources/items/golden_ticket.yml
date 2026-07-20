@@ -1,0 +1,11 @@
+id: "golden_ticket"
+base-item: "minecraft:paper"
+display-name: "<yellow>Golden Ticket"
+lore:
+  - "<gray>Allows entering exclusive auctions!"
+  - "<dark_gray>Size: 3x1"
+width: 3
+height: 1
+custom-model-data: 1001
+worth: 50.0
+virtual-item: true

@@ -1,0 +1,11 @@
+id: "nether_shard"
+base-item: "minecraft:prismarine_shard"
+display-name: "<red>Nether Shard"
+lore:
+  - "<gray>A glowing fragment from the deep Nether."
+  - "<dark_gray>Size: 1x1"
+width: 1
+height: 1
+custom-model-data: 1002
+worth: 120.0
+virtual-item: true

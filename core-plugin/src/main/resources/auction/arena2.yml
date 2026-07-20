@@ -1,0 +1,15 @@
+id: "arena2"
+name: "Infernal Deep Auction"
+thinking-time: 15
+base-price: 250
+multipliers:
+  - 3.0
+  - 2.0
+  - 1.5
+  - 1.2
+  - 1.0
+rewards:
+  - id: "nether_shard"
+    amount: 3
+  - id: "netherite_ingot"
+    amount: 2
