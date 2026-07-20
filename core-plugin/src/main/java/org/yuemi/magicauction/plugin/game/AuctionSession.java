@@ -349,13 +349,13 @@ public final class AuctionSession {
             public void run() {
                 if (progress > 7) {
                     cancel();
-                    closeGraphGui();
                     activeTask = new BukkitRunnable() {
                         @Override
                         public void run() {
+                            closeGraphGui();
                             evaluateRound();
                         }
-                    }.runTaskLater(manager.getPlugin(), 300L);
+                    }.runTaskLater(manager.getPlugin(), 200L);
                     return;
                 }
 
