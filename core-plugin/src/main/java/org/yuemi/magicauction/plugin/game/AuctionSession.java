@@ -227,10 +227,38 @@ public final class AuctionSession {
                 openSinglePlayerBidding(player, binPrice);
             }
         }
+
+        // Bid timeout: force any player who has not bid to bid $1
+        activeTask = new BukkitRunnable() {
+            @Override
+            public void run() {
+                boolean forced = false;
+                for (Player player : players) {
+                    if (!currentBids.containsKey(player.getUniqueId())) {
+                        currentBids.put(player.getUniqueId(), 1.0);
+                        broadcast("<gray>" + player.getName() + " did not bid in time — forced bid of <gold>$1</gold>.");
+                        forced = true;
+                    }
+                }
+                if (forced) {
+                    broadcast("<gray>Bidding time ended.");
+                }
+                if (currentBids.size() >= players.size()) {
+                    startGraphicsState();
+                }
+            }
+        }.runTaskLater(manager.getPlugin(), arena.getBidDuration() * 20L);
     }
 
     private void openSinglePlayerBidding(Player p, double binPrice) {
         if (!players.contains(p) || currentBids.containsKey(p.getUniqueId())) return;
+
+        double playerBalance = 0;
+        EconomyApi econApi = YueMiLibsProvider.getApi().getEconomy();
+        var econProvider = econApi.getActiveProvider();
+        if (econProvider != null) {
+            playerBalance = econProvider.getBalance(p);
+        }
         GuiApi guiApi = YueMiLibsProvider.getApi().getGui();
         
         ItemStack paper = new ItemStack(Material.PAPER);
@@ -241,7 +269,7 @@ public final class AuctionSession {
         }
 
         guiApi.createAnvilInputBuilder()
-                .title("Bid (Base: " + (int) currentBasePrice + ", BIN: " + (int) binPrice + ")")
+                .title("Balance: $" + (int) playerBalance)
                 .initialText("0")
                 .leftItem(paper)
                 .closePolicy(ClosePolicy.CLOSE)
@@ -452,20 +480,28 @@ public final class AuctionSession {
         cancelActiveTask();
 
         double multiplier = getMultiplier();
-        double binPrice = currentBasePrice * multiplier;
 
-        Player winner = null;
+        // Find highest and second-highest bids in this round
         double highestBid = -1;
+        double secondHighestBid = -1;
+        Player winner = null;
 
         for (Player p : players) {
             double bid = currentBids.getOrDefault(p.getUniqueId(), 0.0);
-            if (bid >= binPrice && bid > highestBid) {
+            if (bid > highestBid) {
+                secondHighestBid = highestBid;
                 highestBid = bid;
                 winner = p;
+            } else if (bid > secondHighestBid) {
+                secondHighestBid = bid;
             }
         }
 
-        if (winner != null) {
+        // BIN threshold = (highest other bid) × round multiplier
+        // If no other bids exist, use the arena base price as floor
+        double binThreshold = Math.max(secondHighestBid, currentBasePrice) * multiplier;
+
+        if (winner != null && highestBid >= binThreshold) {
             EconomyApi econ = YueMiLibsProvider.getApi().getEconomy();
             var provider = econ.getActiveProvider();
             if (provider != null && !manager.isBot(winner)) {
@@ -475,7 +511,8 @@ public final class AuctionSession {
             broadcast("<gold><bold>WINNER!</bold> <yellow>" + winner.getName() + "</yellow> won the auction with a bid of <gold>$" + highestBid + "</gold>!");
             startWinnerRevealAnimation(winner);
         } else {
-            broadcast("<red>No players matched the required BIN price of <gold>$" + binPrice + "</gold> in round " + currentRound + ".");
+            broadcast("<red>No players matched the required BIN price of <gold>$" + binThreshold + "</gold> in round " + currentRound + ".");
+
             if (currentRound < 5) {
                 currentRound++;
                 startPreviewState();
