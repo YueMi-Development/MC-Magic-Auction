@@ -36,6 +36,7 @@ public final class AuctionSession {
     private int currentRevealStep = -1;
     private int currentGraphProgress = 0;
     private Gui graphGui;
+    private Gui revealGui;
     
     // Bids for the current round
     private final Map<UUID, Double> currentBids = new HashMap<>();
@@ -465,6 +466,7 @@ public final class AuctionSession {
         var mm = MiniMessage.miniMessage();
 
         Gui revealGui = buildRevealGui();
+        this.revealGui = revealGui;
         for (Player player : players) {
             if (manager.isBot(player)) continue;
             revealGui.open(player);
@@ -546,6 +548,7 @@ public final class AuctionSession {
                     activeTask = new BukkitRunnable() {
                         @Override
                         public void run() {
+                            closeRevealGui();
                             endSession();
                         }
                     }.runTaskLater(manager.getPlugin(), 40L);
@@ -621,6 +624,17 @@ public final class AuctionSession {
                 player.closeInventory();
             }
             graphGui = null;
+        }
+    }
+
+    private void closeRevealGui() {
+        if (revealGui != null) {
+            revealGui.setClosePolicy(ClosePolicy.CLOSE);
+            for (Player player : players) {
+                if (manager.isBot(player)) continue;
+                player.closeInventory();
+            }
+            revealGui = null;
         }
     }
 
