@@ -244,8 +244,14 @@ public final class AuctionSession {
                 .title("Bid (Base: " + (int) currentBasePrice + ", BIN: " + (int) binPrice + ")")
                 .initialText("0")
                 .leftItem(paper)
-                .closePolicy(ClosePolicy.REOPEN)
+                .closePolicy(ClosePolicy.CLOSE)
                 .onSubmit((player, input) -> {
+                    // Guard: ignore if the player already submitted a bid this round
+                    if (currentBids.containsKey(player.getUniqueId())) {
+                        player.closeInventory();
+                        return;
+                    }
+
                     double bid;
                     try {
                         bid = Double.parseDouble(input.trim());
@@ -278,8 +284,7 @@ public final class AuctionSession {
                     if (currentBids.size() >= players.size()) {
                         Bukkit.getScheduler().runTask(manager.getPlugin(), this::startGraphicsState);
                     } else {
-                        player.closeInventory();
-                        player.sendMessage(MiniMessage.miniMessage().deserialize("<gray>Waiting for other players to bid..."));
+                        Bukkit.getScheduler().runTask(manager.getPlugin(), this::showGraphView);
                     }
                 })
                 .onClose(player -> {
@@ -292,6 +297,7 @@ public final class AuctionSession {
 
     private void startGraphicsState() {
         cancelActiveTask();
+        closeGraphGui();
         broadcast("<green>All bids collected! Simulating bid graphics...");
 
         double multiplier = getMultiplier();
@@ -304,6 +310,10 @@ public final class AuctionSession {
             this.graphGui.open(player);
         }
 
+        startGraphAnimation();
+    }
+
+    private void startGraphAnimation() {
         activeTask = new BukkitRunnable() {
             int progress = 0; // 0 to 7 (Columns 3-9)
 
@@ -331,6 +341,20 @@ public final class AuctionSession {
                 progress++;
             }
         }.runTaskTimer(manager.getPlugin(), 0L, 5L);
+    }
+
+    private void showGraphView() {
+        closeRevealGui();
+        double multiplier = getMultiplier();
+        double binPrice = currentBasePrice * multiplier;
+        currentGraphProgress = 0;
+        this.graphGui = buildGraphGui(binPrice);
+        for (Player player : players) {
+            if (manager.isBot(player)) continue;
+            if (currentBids.containsKey(player.getUniqueId())) {
+                this.graphGui.open(player);
+            }
+        }
     }
 
     private Gui buildGraphGui(double binPrice) {
