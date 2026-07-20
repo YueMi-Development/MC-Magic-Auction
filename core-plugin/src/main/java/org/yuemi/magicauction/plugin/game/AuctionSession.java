@@ -34,6 +34,7 @@ public final class AuctionSession {
     private int currentRound = 1;
     private double currentBasePrice;
     private int currentRevealStep = -1;
+    private int currentGraphProgress = 0;
     
     // Bids for the current round
     private final Map<UUID, Double> currentBids = new HashMap<>();
@@ -294,6 +295,13 @@ public final class AuctionSession {
         double multiplier = getMultiplier();
         double binPrice = currentBasePrice * multiplier;
 
+        currentGraphProgress = 0;
+        Gui graphGui = buildGraphGui(binPrice);
+        for (Player player : players) {
+            if (manager.isBot(player)) continue;
+            graphGui.open(player);
+        }
+
         activeTask = new BukkitRunnable() {
             int progress = 0; // 0 to 7 (Columns 3-9)
 
@@ -310,10 +318,10 @@ public final class AuctionSession {
                     return;
                 }
 
-                Gui graphGui = buildGraphGui(progress, binPrice);
+                currentGraphProgress = progress;
                 for (Player player : players) {
                     if (manager.isBot(player)) continue;
-                    graphGui.open(player);
+                    graphGui.update(player);
                     player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1.0f, 0.5f + (progress * 0.1f));
                 }
 
@@ -322,7 +330,7 @@ public final class AuctionSession {
         }.runTaskTimer(manager.getPlugin(), 0L, 5L);
     }
 
-    private Gui buildGraphGui(int currentProgress, double binPrice) {
+    private Gui buildGraphGui(double binPrice) {
         GuiApi guiApi = YueMiLibsProvider.getApi().getGui();
         var mm = MiniMessage.miniMessage();
 
@@ -379,9 +387,6 @@ public final class AuctionSession {
                 double fraction = bid / binPrice;
                 for (int colIndex = 2; colIndex <= 8; colIndex++) {
                     int step = colIndex - 1;
-                    if (step > currentProgress) {
-                        continue;
-                    }
                     
                     Material progressMaterial;
                     if (bid >= binPrice) {
@@ -401,8 +406,10 @@ public final class AuctionSession {
                         pane.setItemMeta(paneMeta);
                     }
 
+                    final int stepVal = step;
                     GuiItem paneGuiItem = guiApi.createItemBuilder()
                             .item(pane)
+                            .condition(player -> stepVal <= currentGraphProgress)
                             .onClick((pl, ctx) -> ctx.getEvent().setCancelled(true))
                             .build();
 
