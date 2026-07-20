@@ -168,7 +168,7 @@ public final class AuctionSession {
 
                 for (Player player : players) {
                     if (manager.isBot(player)) continue;
-                    gui.updateTitle(player, "Round " + currentRound + "/5 | Time: " + timeLeft + "s");
+                    gui.updateTitle(player, "Round " + currentRound + "/" + arena.getMultipliers().size() + " | Time: " + timeLeft + "s");
                 }
 
                 timeLeft--;
@@ -180,7 +180,7 @@ public final class AuctionSession {
         GuiApi guiApi = YueMiLibsProvider.getApi().getGui();
         
         var builder = guiApi.createBuilder()
-                .title("Round " + currentRound + "/5 | Time: 15s")
+                .title("Round " + currentRound + "/" + arena.getMultipliers().size() + " | Time: " + arena.getThinkingTime() + "s")
                 .rows(6)
                 .closePolicy(ClosePolicy.REOPEN);
 
@@ -513,7 +513,7 @@ public final class AuctionSession {
         } else {
             broadcast("<red>No players matched the required BIN price of <gold>$" + binThreshold + "</gold> in round " + currentRound + ".");
 
-            if (currentRound < 5) {
+            if (currentRound < arena.getMultipliers().size()) {
                 currentRound++;
                 startPreviewState();
             } else {

@@ -1,6 +1,7 @@
 id: "arena1"
 name: "Golden Mystery Arena"
 thinking-time: 15
+bid-time: 30
 base-price: 100
 multipliers:
   - 2.0
