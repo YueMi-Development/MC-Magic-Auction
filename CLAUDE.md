@@ -54,7 +54,13 @@ flowchart TD
     style F fill:#44a,color:#fff
 ```
 
-**Default round multipliers (configurable):**
+**BIN (Buy It Now):** To win instantly, a player's bid must be at least `(highest opposing bid) × round_multiplier`. The BIN threshold is checked at round evaluation: the highest bidder wins only if their bid ≥ (second-highest bid × multiplier). If only one player bids, the arena `base-price` serves as the opposing bid floor.
+
+**Bidding Phase:** After the preview timer (`thinking-time`), each player gets an anvil GUI showing their current balance. They have `bid-time` seconds to enter an amount. If a player fails to bid before the timer expires, their bid is forced to $1. Once a player bids, they immediately see the bid progress graph with current standings, updated live as other bids come in.
+
+**Post-Graph Delay:** After all bids are collected, a 15-second animation plays showing the bidding progress bars, followed by round evaluation.
+
+**Default round multipliers (configurable via `arena/*.yml`):**
 
 | Round | Overbid Multiplier | Vibe |
 |-------|-------------------|------|
@@ -65,12 +71,24 @@ flowchart TD
 | 5     | 1.0× | At cost — BIN or lose it |
 
 - **Players:** 4 per auction session (each opens their own container/chest to bid)
-- **Rounds:** 5 rounds per game (configurable count + custom multipliers per round)
-- **BIN mechanic:** Each round has an overbid multiplier — to win instantly ("BIN"), a player must outbid the current price by at least that multiplier. The first player to BIN wins the auction — no going once, twice, gone.
+- **Rounds:** Determined by the number of entries in `multipliers` list (default 5)
+- **BIN mechanic:** Each round has an overbid multiplier — to win instantly ("BIN"), a player must outbid the current highest opposing bid by at least that multiplier. The first player to BIN wins the auction — no going once, twice, gone.
 - **Winner:** The player who successfully BINs on a round takes the auction item
-- The rising tension: early rounds require a huge overbid, late rounds let players snipe at near-market price. If nobody BINs through all 5 rounds, the auction ends with no winner.
+- **The rising tension:** early rounds require a huge overbid, late rounds let players snipe at near-market price. If nobody BINs through all rounds, the auction ends with no winner.
 
-All round counts and multipliers should be configurable via `config.yml` so server admins can customize the pacing.
+All round counts and multipliers are configurable via `arena/*.yml` files. Server admins can also configure `thinking-time` (preview duration) and `bid-time` (bidding duration).
+
+### Arena Config (`auction/*.yml`)
+
+Each arena file supports:
+
+| Field | Default | Description |
+|-------|---------|-------------|
+| `thinking-time` | 15 | Preview countdown duration in seconds |
+| `bid-time` | 30 | Bidding phase duration in seconds before timeout |
+| `base-price` | 100 | Starting price floor for BIN calculation |
+| `multipliers` | — | Per-round overbid multipliers (list length = round count) |
+| `rewards` | — | Prize pool for this arena |
 
 ### Plugin Lifecycle
 
@@ -86,6 +104,17 @@ All round counts and multipliers should be configurable via `config.yml` so serv
   - If a custom item is virtual, the winner receives its `worth` directly in their economy balance.
   - If a custom item is non-virtual, its `rewards` section is mandatory, containing either commands (e.g. `type: "command"`, `value: "..."`) or YueMiLibs item keys (e.g. `type: "item"`, `id: "..."`). Non-virtual custom items are never physically awarded directly; only their nested `rewards` are distributed on win.
 - **Bot Players (`module-bot`)**: A separate subproject library shaded into the core plugin. Using `_BOT_` in arguments resolves to dynamic sequential bot players (`Bot 1`, `Bot 2`...). Bidding is simulated after a 1-3s delay with random realistic decisions, and inventory/economy operations are protected against bot winners.
+
+### GUI Lifecycle
+
+All display GUIs (preview, bidding graph, reveal) use `ClosePolicy.REOPEN` during their active period so players cannot accidentally close them. **Before any state transition**, the current GUI must be explicitly set to `ClosePolicy.CLOSE` and the player's inventory closed. This prevents the REOPEN policy from fighting with the next GUI and corrupting the GUI framework state.
+
+- **Preview → Bidding**: Preview GUI sets CLOSE before closing in its countdown handler
+- **Bidding → Graph**: After all bids collected, any lingering graph GUI is closed via `closeGraphGui()`, then rebuilt and opened with animation started
+- **Graph → Preview/Reveal**: Graph GUI is closed with CLOSE policy before `evaluateRound()` transitions to the next state
+- **Reveal → End**: Reveal GUI is closed with CLOSE policy via `closeRevealGui()` before `endSession()` closes all inventories
+
+The anvil bidding GUI uses `ClosePolicy.CLOSE` (not REOPEN) to prevent the player from accidentally re-submitting and overwriting their bid. The `onClose` handler reopens the anvil only if the player has not yet bid.
 
 ## Key Conventions
 
