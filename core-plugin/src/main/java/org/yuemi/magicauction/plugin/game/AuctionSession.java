@@ -295,7 +295,8 @@ public final class AuctionSession {
 
                     double bid;
                     try {
-                        bid = org.yuemi.libs.api.util.NumberUtils.parseSuffix(input);
+                        String cleanInput = org.bukkit.ChatColor.stripColor(input.trim());
+                        bid = org.yuemi.libs.api.util.NumberUtils.parseSuffix(cleanInput);
                     } catch (IllegalArgumentException e) {
                         player.sendMessage(MiniMessage.miniMessage().deserialize("<red>Invalid bid! Must be a number or valid format (e.g. 10k)."));
                         Bukkit.getScheduler().runTaskLater(manager.getPlugin(), () -> openSinglePlayerBidding(player, binPrice), 3L);
