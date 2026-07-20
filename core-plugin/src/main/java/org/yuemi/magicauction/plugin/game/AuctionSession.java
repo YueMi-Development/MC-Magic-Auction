@@ -327,7 +327,7 @@ public final class AuctionSession {
                         public void run() {
                             evaluateRound();
                         }
-                    }.runTaskLater(manager.getPlugin(), 60L);
+                    }.runTaskLater(manager.getPlugin(), 300L);
                     return;
                 }
 
