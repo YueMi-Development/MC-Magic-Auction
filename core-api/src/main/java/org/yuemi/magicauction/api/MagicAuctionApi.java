@@ -1,9 +1,9 @@
-package org.yuemi.example.api;
+package org.yuemi.magicauction.api;
 
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-public interface ExampleApi {
+public interface MagicAuctionApi {
 
     void sendMessage(
             @NotNull Player player,

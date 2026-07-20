@@ -1,4 +1,4 @@
-package org.yuemi.example.plugin.bstats;
+package org.yuemi.magicauction.plugin.bstats;
 
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;

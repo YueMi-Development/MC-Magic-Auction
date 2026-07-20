@@ -1,4 +1,4 @@
-package org.yuemi.example.plugin.config.migrations;
+package org.yuemi.magicauction.plugin.config.migrations;
 
 import org.bukkit.configuration.file.FileConfiguration;
 import org.jetbrains.annotations.NotNull;

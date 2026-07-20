@@ -1,11 +1,11 @@
-package org.yuemi.example.plugin;
+package org.yuemi.magicauction.plugin;
 
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
-import org.yuemi.example.api.ExampleApi;
+import org.yuemi.magicauction.api.MagicAuctionApi;
 
-final class ExampleApiImpl implements ExampleApi {
+final class MagicAuctionApiImpl implements MagicAuctionApi {
 
     private final MiniMessage miniMessage = MiniMessage.miniMessage();
 
@@ -19,6 +19,6 @@ final class ExampleApiImpl implements ExampleApi {
 
     @Override
     public boolean isFeatureEnabled(@NotNull Player player) {
-        return player.hasPermission("example.feature");
+        return player.hasPermission("magicauction.feature");
     }
 }

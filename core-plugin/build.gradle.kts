@@ -63,7 +63,7 @@ tasks.named<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("shadowJ
             "Implementation-Title" to pluginName,
             "Implementation-Version" to pluginVersion,
             "Implementation-Vendor" to developerName,
-            "License" to "MIT"
+            "License" to "LGPL-3.0"
         )
     }
 }

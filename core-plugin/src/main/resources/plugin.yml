@@ -1,6 +1,6 @@
 name: '${pluginName}'
 version: '${version}'
-main: org.yuemi.example.plugin.ExamplePlugin
+main: org.yuemi.magicauction.plugin.MagicAuctionPlugin
 authors: [${authors}]
 contributors: [${contributors}]
 api-version: '${apiVersion}'
