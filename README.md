@@ -16,32 +16,27 @@ The core mechanic is a **container bidding game** with escalating tension:
 
 ```mermaid
 flowchart TD
-    A["Auction Starts<br/>(4 players, item up for bid)"] --> B["Round N begins<br/>Base price set"]
-    B --> C{"Player opens<br/>container/chest"}
-    C --> D["Sees current price +<br/>required BIN amount"]
-    D --> E{"Can player<br/>afford the BIN?"}
-    E -->|Yes| F["Player pays BIN amount<br/>= round_multiplier × current_price"]
-    F --> G["Player BINs —<br/>Auction ends immediately"]
-    G --> H["Winner takes the item!"]
-    E -->|No| I["Player can bid<br/>smaller increment"]
-    I --> J{"Bid timer expires<br/>or all pass?"}
-    J -->|No one BINs| K["Next round starts<br/>(lower multiplier)"]
-    K --> B
-    J -->|Last player passes| L["Round ends,<br/>no winner this round"]
-    L --> K
+    A["Auction Starts<br/>(4 players)"] --> B["Preview phase<br/>Countdown + action bar"]
+    B --> C["Bidding phase opens<br/>Anvil GUI to enter amount"]
+    C --> D{"All bids in<br/>or time runs out?"}
+    D -->|Yes| E["Bidding graph shows<br/>live standings"]
+    E --> F{"Highest bid ≥<br/>BIN threshold?"}
+    F -->|Yes| G["Player wins<br/>the auction!"]
+    F -->|No| H["No winner this round<br/>Next round starts"]
+    H --> B
+    G --> I["Winner reveal<br/>+ rewards summary"]
 
-    style H fill:#4a4,color:#fff
-    style F fill:#44a,color:#fff
+    style I fill:#4a4,color:#fff
+    style G fill:#44a,color:#fff
 ```
 
 ### Game Rules
-- **Players:** 4 per auction session (each opens their own container/chest to bid).
-- **Rounds:** 5 rounds per game (configurable count + custom multipliers per round).
-- **BIN Mechanic:** Each round has an overbid multiplier. To win instantly ("Buy It Now" / BIN), a player must outbid the current price by at least that multiplier. The first player to BIN wins the auction immediately.
-- **Winner:** The player who successfully BINs on a round takes the auction item. If nobody BINs through all 5 rounds, the auction ends with no winner.
-- **Tension:** Early rounds require a huge overbid (e.g., 2.0x), while later rounds let players snipe at near-market price (e.g., 1.0x).
-
-All round counts and multipliers are configurable via `config.yml`.
+- **Players:** 4 per auction session
+- **Rounds:** Configurable via multipliers list (default 5)
+- **BIN (Buy It Now):** To win instantly, a player's bid must reach the BIN threshold: `highest opposing bid × round multiplier`. The first player to BIN wins immediately.
+- **Winner:** The player who BINs takes the auction item with a reveal animation and rewards summary.
+- **No winner:** If nobody BINs through all rounds, the auction ends with no winner.
+- **Bonus round:** If no multiplier is set to 1.0, a bonus round with a 1.0× multiplier is forced.
 
 ### Default Round Multipliers
 | Round | Overbid Multiplier | Vibe |
