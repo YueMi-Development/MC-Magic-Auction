@@ -421,12 +421,9 @@ public final class AuctionSession {
                 String color = getRarityColor(state.getConfig().getRarity());
                 material = GlassPaneMapper.getMaterial(color);
             } else if (rarityRevealed) {
-                // Rarity known but size unknown — use a solid glass block (no pane)
-                // to convey color without implying the item's full shape
-                String color = getRarityColor(state.getConfig().getRarity());
-                material = GlassPaneMapper.getBlockMaterial(color);
+                material = getPlaceholderBlock();
             } else {
-                material = Material.BLACK_STAINED_GLASS_PANE;
+                material = getPlaceholderPane();
             }
             item = new ItemStack(material);
         }
@@ -1332,6 +1329,29 @@ public final class AuctionSession {
     private static String getRarityColor(@NotNull String rarityId) {
         var info = RarityRegistry.get(rarityId);
         return info != null ? info.getColor() : rarityId;
+    }
+
+    /**
+     * Resolve the placeholder pane material from config (used when size is known
+     * but nothing else has been revealed). Falls back to {@link Material#IRON_BARS}.
+     */
+    @NotNull
+    private Material getPlaceholderPane() {
+        String name = manager.getPlugin().getConfig().getString("container.preview.placeholder_pane", "IRON_BARS");
+        Material material = Material.getMaterial(name);
+        return material != null ? material : Material.IRON_BARS;
+    }
+
+    /**
+     * Resolve the placeholder block material from config (used as a 1x1
+     * placeholder when rarity is known but size is unknown).
+     * Falls back to {@link Material#GLASS}.
+     */
+    @NotNull
+    private Material getPlaceholderBlock() {
+        String name = manager.getPlugin().getConfig().getString("container.preview.placeholder_block", "GLASS");
+        Material material = Material.getMaterial(name);
+        return material != null ? material : Material.GLASS;
     }
 
     @NotNull

@@ -1,6 +1,6 @@
 # MagicAuction Configuration
 # Do not change the config-version value manually.
-config-version: 3
+config-version: 4
 
 # Matchmaking settings
 matchmaking:
@@ -25,6 +25,17 @@ matchmaking:
 
 # Container preview & reveal settings
 container:
+  preview:
+    # Material used for the full-size placeholder when an item's size is known
+    # but nothing else has been revealed.
+    # Accepts any Bukkit Material name.
+    placeholder_pane: "IRON_BARS"
+
+    # Material used for the 1x1 placeholder when rarity is known
+    # but the item's size is still unknown.
+    # Accepts any Bukkit Material name.
+    placeholder_block: "GLASS"
+
   reveal:
     # Whether the container reveal system is enabled globally.
     # When false, the winner reveal animation is skipped entirely.

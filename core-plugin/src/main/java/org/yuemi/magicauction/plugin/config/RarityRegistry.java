@@ -28,10 +28,6 @@ public final class RarityRegistry {
             this.color = color.toLowerCase();
             this.revealSounds = revealSounds != null ? List.copyOf(revealSounds) : null;
 
-            if ("black".equalsIgnoreCase(color)) {
-                throw new IllegalArgumentException("Rarity color cannot be 'black' as it is reserved for unknown/masked states!");
-            }
-
             this.glassPaneMaterial = GlassPaneMapper.getMaterial(color);
         }
 
