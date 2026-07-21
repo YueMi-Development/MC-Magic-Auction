@@ -48,6 +48,7 @@ public final class AuctionSession {
     private int revealAnimationTick = -1;
     private int currentGraphProgress = 0;
     private boolean biddingActive = false;
+    private boolean revealActive = false;
     private Gui graphGui;
     private Gui revealGui;
     
@@ -1030,6 +1031,7 @@ public final class AuctionSession {
         }
 
         revealAnimationTick = -1;
+        revealActive = true;
         Gui revealGui = buildRevealGui();
         this.revealGui = revealGui;
         for (Player player : players) {
@@ -1043,18 +1045,17 @@ public final class AuctionSession {
         activeTask = new BukkitRunnable() {
             @Override
             public void run() {
+                if (!revealActive) {
+                    cancel();
+                    return;
+                }
+
                 if (revealAnimationTick >= generatedPrizes.size() * 4) {
                     cancel();
-
+                    revealActive = false;
                     awardPrizes(winner);
-
-                    activeTask = new BukkitRunnable() {
-                        @Override
-                        public void run() {
-                            closeRevealGui();
-                            endSession();
-                        }
-                    }.runTaskLater(manager.getPlugin(), 40L);
+                    closeRevealGui();
+                    endSession();
                     return;
                 }
 
@@ -1197,7 +1198,15 @@ public final class AuctionSession {
         var builder = guiApi.createBuilder()
                 .title("Auction Reveal")
                 .rows(6)
-                .closePolicy(ClosePolicy.REOPEN);
+                .closePolicy(ClosePolicy.CLOSE)
+                .onClose(player -> {
+                    // Player closed the reveal early — skip to prize awarding
+                    if (!revealActive) return;
+                    revealActive = false;
+                    cancelActiveTask();
+                    awardPrizes(player);
+                    endSession();
+                });
 
         // Layer for actual items (priority 3) — shown after flicker animation completes
         builder.createLayer("reveal_items", 3, layer -> {
@@ -1397,6 +1406,7 @@ public final class AuctionSession {
     }
 
     private void closeRevealGui() {
+        revealActive = false;
         if (revealGui != null) {
             revealGui.setClosePolicy(ClosePolicy.CLOSE);
             for (Player player : players) {
