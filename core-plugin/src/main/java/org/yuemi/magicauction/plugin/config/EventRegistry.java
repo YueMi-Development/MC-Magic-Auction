@@ -34,6 +34,7 @@ public final class EventRegistry {
                     throw new IllegalArgumentException("Event file '" + file.getName() + "' must contain both 'name' and 'desc' (or 'description') fields!");
                 }
                 boolean onlyOnce = config.getBoolean("only-once", false);
+                int minRounds = config.getInt("min-rounds", 1);
 
                 List<EventConfig.ActionEntry> actions = new ArrayList<>();
 
@@ -62,7 +63,7 @@ public final class EventRegistry {
                         }
                     }
                 }
-                EVENTS.put(id.toLowerCase(), new EventConfig(id, name, desc, onlyOnce, actions));
+                EVENTS.put(id.toLowerCase(), new EventConfig(id, name, desc, onlyOnce, minRounds, actions));
             } catch (Exception ignored) {
                 // Ignore config loading errors for individual files to avoid crashing the registry
             }

@@ -56,6 +56,7 @@ public final class EventConfig {
     private final String name;
     private final String desc;
     private final boolean onlyOnce;
+    private final int minRounds;
     private final List<ActionEntry> actions;
 
     public EventConfig(
@@ -63,12 +64,14 @@ public final class EventConfig {
             @NotNull String name,
             @NotNull String desc,
             boolean onlyOnce,
+            int minRounds,
             @NotNull List<ActionEntry> actions
     ) {
         this.id = id;
         this.name = name;
         this.desc = desc;
         this.onlyOnce = onlyOnce;
+        this.minRounds = Math.max(1, minRounds);
         this.actions = List.copyOf(actions);
     }
 
@@ -89,6 +92,10 @@ public final class EventConfig {
 
     public boolean isOnlyOnce() {
         return onlyOnce;
+    }
+
+    public int getMinRounds() {
+        return minRounds;
     }
 
     @NotNull

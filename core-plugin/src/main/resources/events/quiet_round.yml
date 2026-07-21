@@ -1,0 +1,4 @@
+name: "Quiet Round"
+desc: "Nothing happens this round"
+min-rounds: 2
+actions: []

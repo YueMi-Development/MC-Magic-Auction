@@ -153,7 +153,9 @@ public final class AuctionSession {
             String eventId = shuffledEvents.get(i);
             EventConfig event = EventRegistry.get(eventId);
             if (event != null) {
-                if (!event.isOnlyOnce() || !triggeredEvents.contains(event.getId().toLowerCase())) {
+                boolean meetsOnlyOnce = !event.isOnlyOnce() || !triggeredEvents.contains(event.getId().toLowerCase());
+                boolean meetsMinRound = currentRound >= event.getMinRounds();
+                if (meetsOnlyOnce && meetsMinRound) {
                     if (i != currentRound - 1) {
                         String temp = shuffledEvents.get(currentRound - 1);
                         shuffledEvents.set(currentRound - 1, eventId);
@@ -166,7 +168,9 @@ public final class AuctionSession {
         // Fallback to round_<N>
         EventConfig fallback = EventRegistry.get("round_" + currentRound);
         if (fallback != null) {
-            if (!fallback.isOnlyOnce() || !triggeredEvents.contains(fallback.getId().toLowerCase())) {
+            boolean meetsOnlyOnce = !fallback.isOnlyOnce() || !triggeredEvents.contains(fallback.getId().toLowerCase());
+            boolean meetsMinRound = currentRound >= fallback.getMinRounds();
+            if (meetsOnlyOnce && meetsMinRound) {
                 return fallback;
             }
         }
