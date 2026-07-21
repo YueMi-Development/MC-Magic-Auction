@@ -103,69 +103,88 @@ public final class AuctionSession {
             targetCount = min + random.nextInt(max - min + 1);
         }
 
-        int toSelect = Math.max(0, Math.min(targetCount, pool.size()));
-        List<ArenaConfig.PrizeEntry> selectedPrizes = new ArrayList<>(pool.subList(0, toSelect));
+        List<ArenaConfig.PrizeEntry> candidates = new ArrayList<>(pool);
+        boolean[][] occupied = new boolean[6][9];
+        int placedCount = 0;
 
-        // Pack items into 3x6 grid
-        boolean[][] occupied = new boolean[3][6];
-        
-        for (ArenaConfig.PrizeEntry entry : selectedPrizes) {
-            ItemStack stack = null;
-            ItemConfig itemConfig = null;
-            int width = 1;
-            int height = 1;
-
-            ItemConfig localConfig = manager.getItemConfig(entry.getItemId());
-            if (localConfig != null) {
-                itemConfig = localConfig;
-                stack = localConfig.createItemStack(entry.getAmount());
-                width = localConfig.getWidth();
-                height = localConfig.getHeight();
-            }
-
-            if (stack == null) continue;
-
-            // Pack item
-            boolean placed = false;
-            for (int y = 0; y <= 3 - height; y++) {
-                for (int x = 0; x <= 6 - width; x++) {
-                    // Check overlap
-                    boolean overlaps = false;
-                    for (int dy = 0; dy < height; dy++) {
-                        for (int dx = 0; dx < width; dx++) {
-                            if (occupied[y + dy][x + dx]) {
-                                overlaps = true;
-                                break;
-                            }
-                        }
-                        if (overlaps) break;
-                    }
-
-                    if (!overlaps) {
-                        // Place item
-                        for (int dy = 0; dy < height; dy++) {
-                            for (int dx = 0; dx < width; dx++) {
-                                occupied[y + dy][x + dx] = true;
-                            }
-                        }
-                        generatedPrizes.add(stack);
-                        if (itemConfig != null) {
-                            PrizeState pState = new PrizeState(stack, itemConfig, new int[]{y, x});
-                            org.bukkit.inventory.meta.ItemMeta meta = stack.getItemMeta();
-                            if (meta != null) {
-                                org.bukkit.NamespacedKey key = new org.bukkit.NamespacedKey(manager.getPlugin(), "auction_item_uid");
-                                meta.getPersistentDataContainer().set(key, org.bukkit.persistence.PersistentDataType.STRING, pState.getUniqueId().toString());
-                                stack.setItemMeta(meta);
-                            }
-                            prizeStates.add(pState);
-                        }
-                        placed = true;
+        int index = 0;
+        while (placedCount < targetCount && index < candidates.size()) {
+            ArenaConfig.PrizeEntry entry = candidates.get(index);
+            boolean placed = tryPlaceItem(entry, occupied);
+            if (placed) {
+                placedCount++;
+                index++;
+            } else {
+                boolean fallbackPlaced = false;
+                int failedTries = 0;
+                int fallbackIndex = index + 1;
+                while (fallbackIndex < candidates.size() && failedTries < 3) {
+                    ArenaConfig.PrizeEntry fallbackEntry = candidates.get(fallbackIndex);
+                    if (tryPlaceItem(fallbackEntry, occupied)) {
+                        candidates.remove(fallbackIndex);
+                        placedCount++;
+                        fallbackPlaced = true;
                         break;
                     }
+                    failedTries++;
+                    fallbackIndex++;
                 }
-                if (placed) break;
+                index++;
             }
         }
+    }
+
+    private boolean tryPlaceItem(ArenaConfig.PrizeEntry entry, boolean[][] occupied) {
+        ItemStack stack = null;
+        ItemConfig itemConfig = null;
+        int width = 1;
+        int height = 1;
+
+        ItemConfig localConfig = manager.getItemConfig(entry.getItemId());
+        if (localConfig != null) {
+            itemConfig = localConfig;
+            stack = localConfig.createItemStack(entry.getAmount());
+            width = localConfig.getWidth();
+            height = localConfig.getHeight();
+        }
+
+        if (stack == null) return false;
+
+        for (int y = 0; y <= 6 - height; y++) {
+            for (int x = 0; x <= 9 - width; x++) {
+                boolean overlaps = false;
+                for (int dy = 0; dy < height; dy++) {
+                    for (int dx = 0; dx < width; dx++) {
+                        if (occupied[y + dy][x + dx]) {
+                            overlaps = true;
+                            break;
+                        }
+                    }
+                    if (overlaps) break;
+                }
+
+                if (!overlaps) {
+                    for (int dy = 0; dy < height; dy++) {
+                        for (int dx = 0; dx < width; dx++) {
+                            occupied[y + dy][x + dx] = true;
+                        }
+                    }
+                    generatedPrizes.add(stack);
+                    if (itemConfig != null) {
+                        PrizeState pState = new PrizeState(stack, itemConfig, new int[]{y, x});
+                        org.bukkit.inventory.meta.ItemMeta meta = stack.getItemMeta();
+                        if (meta != null) {
+                            org.bukkit.NamespacedKey key = new org.bukkit.NamespacedKey(manager.getPlugin(), "auction_item_uid");
+                            meta.getPersistentDataContainer().set(key, org.bukkit.persistence.PersistentDataType.STRING, pState.getUniqueId().toString());
+                            stack.setItemMeta(meta);
+                        }
+                        prizeStates.add(pState);
+                    }
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     public void start() {
@@ -506,7 +525,7 @@ public final class AuctionSession {
                 int startX = pos[1];
                 
                 if (state.isFullyRevealed()) {
-                    int slot = (1 + startY) * 9 + (1 + startX);
+                    int slot = startY * 9 + startX;
                     ItemStack prizeItem = buildContainerItemStack(state, false);
                     GuiItem prizeGuiItem = guiApi.createItemBuilder()
                             .item(prizeItem)
@@ -525,13 +544,13 @@ public final class AuctionSession {
                         int height = state.getConfig().getHeight();
                         for (int dy = 0; dy < height; dy++) {
                             for (int dx = 0; dx < width; dx++) {
-                                int slot = (1 + startY + dy) * 9 + (1 + startX + dx);
+                                int slot = (startY + dy) * 9 + (startX + dx);
                                 layer.setItem(slot, paneGuiItem);
                             }
                         }
                     } else {
                         // 1x1 at anchor position
-                        int slot = (1 + startY) * 9 + (1 + startX);
+                        int slot = startY * 9 + startX;
                         layer.setItem(slot, paneGuiItem);
                     }
                 }
@@ -1086,7 +1105,7 @@ public final class AuctionSession {
             for (int i = 0; i < generatedPrizes.size(); i++) {
                 PrizeState state = prizeStates.get(i);
                 int[] pos = state.getPosition();
-                int slot = (1 + pos[0]) * 9 + (1 + pos[1]);
+                int slot = pos[0] * 9 + pos[1];
 
                 final int finalI = i;
 
@@ -1105,7 +1124,7 @@ public final class AuctionSession {
             for (int i = 0; i < generatedPrizes.size(); i++) {
                 PrizeState state = prizeStates.get(i);
                 int[] pos = state.getPosition();
-                int slot = (1 + pos[0]) * 9 + (1 + pos[1]);
+                int slot = pos[0] * 9 + pos[1];
 
                 ItemStack blackGlass = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
                 ItemMeta meta = blackGlass.getItemMeta();
