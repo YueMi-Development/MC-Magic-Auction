@@ -50,8 +50,6 @@ public final class AuctionSession {
     
     private BukkitTask activeTask;
     private final List<ItemStack> generatedPrizes = new ArrayList<>();
-    private final Map<ItemStack, int[]> prizePositions = new HashMap<>(); // [y, x] in 3x6 grid
-    private final Map<ItemStack, ItemConfig> prizeConfigs = new HashMap<>(); // Maps custom items to configs
     private final List<PrizeState> prizeStates = new ArrayList<>();
     private final List<String> shuffledEvents = new ArrayList<>();
     private final List<String> shuffledStartEvents = new ArrayList<>();
@@ -151,10 +149,15 @@ public final class AuctionSession {
                             }
                         }
                         generatedPrizes.add(stack);
-                        prizePositions.put(stack, new int[]{y, x});
                         if (itemConfig != null) {
-                            prizeConfigs.put(stack, itemConfig);
-                            prizeStates.add(new PrizeState(stack, itemConfig, new int[]{y, x}));
+                            PrizeState pState = new PrizeState(stack, itemConfig, new int[]{y, x});
+                            org.bukkit.inventory.meta.ItemMeta meta = stack.getItemMeta();
+                            if (meta != null) {
+                                org.bukkit.NamespacedKey key = new org.bukkit.NamespacedKey(manager.getPlugin(), "auction_item_uid");
+                                meta.getPersistentDataContainer().set(key, org.bukkit.persistence.PersistentDataType.STRING, pState.getUniqueId().toString());
+                                stack.setItemMeta(meta);
+                            }
+                            prizeStates.add(pState);
                         }
                         placed = true;
                         break;
@@ -428,6 +431,8 @@ public final class AuctionSession {
                 lore.add(mm.deserialize("<gray>Size: <red>???</red></gray>"));
             }
 
+            var key = new org.bukkit.NamespacedKey(manager.getPlugin(), "auction_item_uid");
+            meta.getPersistentDataContainer().set(key, org.bukkit.persistence.PersistentDataType.STRING, state.getUniqueId().toString());
             meta.lore(lore);
             item.setItemMeta(meta);
         }
@@ -990,8 +995,9 @@ public final class AuctionSession {
                     var provider = econ.getActiveProvider();
                     
                     boolean isBotWinner = manager.isBot(winner);
-                    for (ItemStack stack : generatedPrizes) {
-                        ItemConfig config = prizeConfigs.get(stack);
+                    for (PrizeState prizeState : prizeStates) {
+                        ItemStack stack = prizeState.getOriginalStack();
+                        ItemConfig config = prizeState.getConfig();
                         if (config != null) {
                             if (config.isVirtualItem()) {
                                 // Virtual Item: Award worth to economy
@@ -1041,12 +1047,6 @@ public final class AuctionSession {
                                     winner.sendMessage(mm.deserialize("<green>Received rewards for: <yellow>" + config.getDisplayName()));
                                 }
                             }
-                        } else if (!isBotWinner) {
-                            // Vanilla physical item fallback
-                            Map<Integer, ItemStack> leftover = winner.getInventory().addItem(stack);
-                            for (ItemStack leftoverItem : leftover.values()) {
-                                winner.getWorld().dropItemNaturally(winner.getLocation(), leftoverItem);
-                            }
                         }
                     }
                     
@@ -1084,11 +1084,10 @@ public final class AuctionSession {
         // Layer for actual items (priority 2)
         builder.createLayer("reveal_items", 2, layer -> {
             for (int i = 0; i < generatedPrizes.size(); i++) {
-                ItemStack stack = generatedPrizes.get(i);
-                int[] pos = prizePositions.get(stack);
+                PrizeState state = prizeStates.get(i);
+                int[] pos = state.getPosition();
                 int slot = (1 + pos[0]) * 9 + (1 + pos[1]);
 
-                PrizeState state = prizeStates.get(i);
                 final int finalI = i;
 
                 ItemStack prizeItem = buildContainerItemStack(state, true);
@@ -1104,8 +1103,8 @@ public final class AuctionSession {
         // Layer for black glass placeholders (priority 1)
         builder.createLayer("reveal_placeholders", 1, layer -> {
             for (int i = 0; i < generatedPrizes.size(); i++) {
-                ItemStack stack = generatedPrizes.get(i);
-                int[] pos = prizePositions.get(stack);
+                PrizeState state = prizeStates.get(i);
+                int[] pos = state.getPosition();
                 int slot = (1 + pos[0]) * 9 + (1 + pos[1]);
 
                 ItemStack blackGlass = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);

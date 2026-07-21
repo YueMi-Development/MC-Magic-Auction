@@ -7,6 +7,7 @@ import org.yuemi.magicauction.plugin.config.ItemConfig;
 
 public final class PrizeState {
 
+    private final java.util.UUID uniqueId = java.util.UUID.randomUUID();
     private final ItemStack originalStack;
     private final ItemConfig config;
     private final int[] position; // [row, col]
@@ -24,6 +25,11 @@ public final class PrizeState {
         this.originalStack = originalStack;
         this.config = config;
         this.position = position;
+    }
+
+    @NotNull
+    public java.util.UUID getUniqueId() {
+        return uniqueId;
     }
 
     @NotNull
