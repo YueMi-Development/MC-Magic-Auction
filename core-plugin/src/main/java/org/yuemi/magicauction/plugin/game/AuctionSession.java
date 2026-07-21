@@ -614,6 +614,8 @@ public final class AuctionSession {
             }
         });
 
+        // Defer anvil open by 1 tick to avoid stacking InventoryChangeTrigger evaluation
+        // on the same tick as the preview close (Paper 1.21.8 advancement/tag hang).
         for (Player player : players) {
             if (manager.isBot(player)) {
                 // Simulate bot bidding after a delay (1-3 seconds)
@@ -637,7 +639,7 @@ public final class AuctionSession {
                     startGraphicsState();
                 }
             } else {
-                openSinglePlayerBidding(player, binPrice);
+                Bukkit.getScheduler().runTaskLater(manager.getPlugin(), () -> openSinglePlayerBidding(player, binPrice), 1L);
             }
         }
 
@@ -729,7 +731,7 @@ public final class AuctionSession {
                 })
                 .onClose(player -> {
                     if (!currentBids.containsKey(player.getUniqueId())) {
-                        Bukkit.getScheduler().runTask(manager.getPlugin(), () -> openSinglePlayerBidding(player, binPrice));
+                        Bukkit.getScheduler().runTaskLater(manager.getPlugin(), () -> openSinglePlayerBidding(player, binPrice), 1L);
                     }
                 })
                 .open(p);
