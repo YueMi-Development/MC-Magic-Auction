@@ -3,9 +3,7 @@ rarity: "uncommon"
 type: "accessory"
 base-item: "minecraft:rabbit_foot"
 display-name: "<green>Lucky Charm"
-lore:
-  - "<gray>Increases your bidding luck by 7%!"
-  - "<dark_gray>Size: 1x1"
+desc: "Increases your bidding luck by 7%!"
 width: 1
 height: 1
 custom-model-data: 1004

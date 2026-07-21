@@ -356,45 +356,76 @@ public final class AuctionSession {
         }
     }
 
-    private ItemStack createMaskedItemStack(@NotNull PrizeState state) {
-        Material material;
-        if (state.isSizeRevealed() && state.isRarityRevealed()) {
-            var rarityInfo = RarityRegistry.get(state.getConfig().getRarity());
-            material = rarityInfo != null ? rarityInfo.getGlassPaneMaterial() : Material.BLACK_STAINED_GLASS_PANE;
+    private ItemStack buildContainerItemStack(@NotNull PrizeState state, boolean forceFullyRevealed) {
+        boolean hide = state.isHide() && !forceFullyRevealed;
+        
+        boolean fullyRevealed = !hide && (forceFullyRevealed || state.isFullyRevealed());
+        boolean rarityRevealed = !hide && (forceFullyRevealed || state.isRarityRevealed());
+        boolean typeRevealed = !hide && (forceFullyRevealed || state.isTypeRevealed());
+        boolean sizeRevealed = !hide && (forceFullyRevealed || state.isSizeRevealed());
+
+        ItemStack item;
+        if (fullyRevealed) {
+            item = state.getOriginalStack().clone();
         } else {
-            material = Material.BLACK_STAINED_GLASS_PANE;
+            Material material;
+            if (sizeRevealed && rarityRevealed) {
+                var rarityInfo = RarityRegistry.get(state.getConfig().getRarity());
+                material = rarityInfo != null ? rarityInfo.getGlassPaneMaterial() : Material.BLACK_STAINED_GLASS_PANE;
+            } else {
+                material = Material.BLACK_STAINED_GLASS_PANE;
+            }
+            item = new ItemStack(material);
         }
 
-        ItemStack item = new ItemStack(material);
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
             var mm = MiniMessage.miniMessage();
-            String nameText;
-            if (state.isTypeRevealed()) {
-                var typeInfo = TypeRegistry.get(state.getConfig().getType());
-                String typeName = typeInfo != null ? typeInfo.getName() : state.getConfig().getType();
-                nameText = "<yellow>Type: <white>" + typeName + "</white></yellow>";
+            
+            if (fullyRevealed) {
+                meta.displayName(mm.deserialize(state.getConfig().getDisplayName()));
             } else {
-                nameText = "<red>Type: Unknown</red>";
+                meta.displayName(mm.deserialize("<red>???</red>"));
             }
-            meta.displayName(mm.deserialize(nameText));
 
             List<net.kyori.adventure.text.Component> lore = new ArrayList<>();
-            if (state.isRarityRevealed()) {
+            
+            // Rarity (if revealed)
+            if (rarityRevealed) {
                 var rarityInfo = RarityRegistry.get(state.getConfig().getRarity());
                 if (rarityInfo != null) {
                     lore.add(mm.deserialize("<gray>Rarity: <" + rarityInfo.getColor() + ">" + rarityInfo.getName() + "</" + rarityInfo.getColor() + "></gray>"));
                 } else {
-                    lore.add(mm.deserialize("<gray>Rarity: Unknown</gray>"));
+                    lore.add(mm.deserialize("<gray>Rarity: " + state.getConfig().getRarity() + "</gray>"));
                 }
             } else {
-                lore.add(mm.deserialize("<gray>Rarity: <red>Unknown</red></gray>"));
+                lore.add(mm.deserialize("<gray>Rarity: <red>???</red></gray>"));
             }
 
-            if (state.isSizeRevealed()) {
+            // Types (if revealed)
+            if (typeRevealed) {
+                var typeInfo = TypeRegistry.get(state.getConfig().getType());
+                String typeName = typeInfo != null ? typeInfo.getName() : state.getConfig().getType();
+                lore.add(mm.deserialize("<gray>Type: <yellow>" + typeName + "</yellow></gray>"));
+            } else {
+                lore.add(mm.deserialize("<gray>Type: <red>???</red></gray>"));
+            }
+
+            // Desc (if fully revealed)
+            if (fullyRevealed && state.getConfig().getDesc() != null) {
+                lore.add(mm.deserialize("<gray>Desc: <white>" + state.getConfig().getDesc() + "</white></gray>"));
+            }
+
+            // Worth (if fully revealed)
+            if (fullyRevealed) {
+                lore.add(mm.deserialize("<gray>Worth: <gold>$" + org.yuemi.libs.api.util.NumberUtils.formatSuffix(state.getConfig().getWorth()) + "</gold></gray>"));
+            }
+
+            // Size (if revealed)
+            if (sizeRevealed) {
                 lore.add(mm.deserialize("<gray>Size: <yellow>" + state.getConfig().getWidth() + "x" + state.getConfig().getHeight() + "</yellow></gray>"));
             } else {
-                lore.add(mm.deserialize("<gray>Size: <red>Unknown</red></gray>"));
+                lore.add(mm.deserialize("<gray>Size: <red>???</red></gray>"));
             }
 
             meta.lore(lore);
@@ -471,13 +502,14 @@ public final class AuctionSession {
                 
                 if (state.isFullyRevealed()) {
                     int slot = (1 + startY) * 9 + (1 + startX);
+                    ItemStack prizeItem = buildContainerItemStack(state, false);
                     GuiItem prizeGuiItem = guiApi.createItemBuilder()
-                            .item(state.getOriginalStack())
+                            .item(prizeItem)
                             .onClick((p, ctx) -> ctx.getEvent().setCancelled(true))
                             .build();
                     layer.setItem(slot, prizeGuiItem);
-                } else if (state.isTypeRevealed() || state.isRarityRevealed() || state.isSizeRevealed()) {
-                    ItemStack glassPane = createMaskedItemStack(state);
+                } else {
+                    ItemStack glassPane = buildContainerItemStack(state, false);
                     GuiItem paneGuiItem = guiApi.createItemBuilder()
                             .item(glassPane)
                             .onClick((p, ctx) -> ctx.getEvent().setCancelled(true))
@@ -730,6 +762,31 @@ public final class AuctionSession {
         });
 
         builder.createLayer("players", 1, layer -> {
+            // Pre-calculate bids, winner, and second highest for coloring
+            double multiplier = getMultiplier();
+            double highestBid = -1;
+            double secondHighestBid = -1;
+            UUID winnerUUID = null;
+
+            for (Player pl : players) {
+                double b = currentBids.getOrDefault(pl.getUniqueId(), 0.0);
+                if (b > highestBid) {
+                    highestBid = b;
+                    winnerUUID = pl.getUniqueId();
+                }
+            }
+
+            for (Player pl : players) {
+                if (pl.getUniqueId().equals(winnerUUID)) continue;
+                double b = currentBids.getOrDefault(pl.getUniqueId(), 0.0);
+                if (b > secondHighestBid) {
+                    secondHighestBid = b;
+                }
+            }
+
+            double binThreshold = Math.max(secondHighestBid, currentBasePrice) * multiplier;
+            boolean hasWinner = highestBid >= binThreshold;
+
             for (int i = 0; i < players.size(); i++) {
                 Player p = players.get(i);
                 double bid = currentBids.getOrDefault(p.getUniqueId(), 0.0);
@@ -740,8 +797,7 @@ public final class AuctionSession {
                     skullMeta.setOwningPlayer(p);
                     skullMeta.displayName(mm.deserialize("<yellow>" + p.getName()));
                     skullMeta.lore(List.of(
-                            mm.deserialize("<gray>Bid: <gold>$" + org.yuemi.libs.api.util.NumberUtils.formatSuffix(bid)),
-                            mm.deserialize(bid >= binPrice ? "<green>BIN SUCCESS!" : "<red>No BIN")
+                            mm.deserialize("<gray>Bid: <gold>$" + org.yuemi.libs.api.util.NumberUtils.formatSuffix(bid))
                     ));
                     skull.setItemMeta(skullMeta);
                 }
@@ -768,9 +824,13 @@ public final class AuctionSession {
                     int step = colIndex - 1;
                     
                     Material progressMaterial;
-                    if (bid >= binPrice) {
-                        progressMaterial = Material.LIME_STAINED_GLASS_PANE;
-                    } else if (bid >= 1.0) {
+                    if (p.getUniqueId().equals(winnerUUID)) {
+                        if (hasWinner) {
+                            progressMaterial = Material.LIME_STAINED_GLASS_PANE;
+                        } else {
+                            progressMaterial = Material.YELLOW_STAINED_GLASS_PANE;
+                        }
+                    } else if (bid > 0 && Math.abs(bid - secondHighestBid) < 0.0001) {
                         progressMaterial = Material.YELLOW_STAINED_GLASS_PANE;
                     } else {
                         progressMaterial = Material.RED_STAINED_GLASS_PANE;
@@ -909,6 +969,7 @@ public final class AuctionSession {
     private void startWinnerRevealAnimation(@NotNull Player winner) {
         var mm = MiniMessage.miniMessage();
 
+        currentRevealStep = -1;
         Gui revealGui = buildRevealGui();
         this.revealGui = revealGui;
         for (Player player : players) {
@@ -1009,7 +1070,7 @@ public final class AuctionSession {
 
                 step++;
             }
-        }.runTaskTimer(manager.getPlugin(), 0L, 15L);
+        }.runTaskTimer(manager.getPlugin(), 100L, 15L);
     }
 
     private Gui buildRevealGui() {
@@ -1020,19 +1081,44 @@ public final class AuctionSession {
                 .rows(6)
                 .closePolicy(ClosePolicy.REOPEN);
 
-        builder.createLayer("reveal", 1, layer -> {
+        // Layer for actual items (priority 2)
+        builder.createLayer("reveal_items", 2, layer -> {
             for (int i = 0; i < generatedPrizes.size(); i++) {
                 ItemStack stack = generatedPrizes.get(i);
                 int[] pos = prizePositions.get(stack);
                 int slot = (1 + pos[0]) * 9 + (1 + pos[1]);
 
-                if (i <= currentRevealStep) {
-                    GuiItem prizeItem = guiApi.createItemBuilder()
-                            .item(stack)
-                            .onClick((p, ctx) -> ctx.getEvent().setCancelled(true))
-                            .build();
-                    layer.setItem(slot, prizeItem);
+                PrizeState state = prizeStates.get(i);
+                final int finalI = i;
+
+                ItemStack prizeItem = buildContainerItemStack(state, true);
+                GuiItem prizeGuiItem = guiApi.createItemBuilder()
+                        .item(prizeItem)
+                        .condition(player -> finalI <= currentRevealStep)
+                        .onClick((p, ctx) -> ctx.getEvent().setCancelled(true))
+                        .build();
+                layer.setItem(slot, prizeGuiItem);
+            }
+        });
+
+        // Layer for black glass placeholders (priority 1)
+        builder.createLayer("reveal_placeholders", 1, layer -> {
+            for (int i = 0; i < generatedPrizes.size(); i++) {
+                ItemStack stack = generatedPrizes.get(i);
+                int[] pos = prizePositions.get(stack);
+                int slot = (1 + pos[0]) * 9 + (1 + pos[1]);
+
+                ItemStack blackGlass = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
+                ItemMeta meta = blackGlass.getItemMeta();
+                if (meta != null) {
+                    meta.displayName(MiniMessage.miniMessage().deserialize("<red>???</red>"));
+                    blackGlass.setItemMeta(meta);
                 }
+                GuiItem paneGuiItem = guiApi.createItemBuilder()
+                        .item(blackGlass)
+                        .onClick((p, ctx) -> ctx.getEvent().setCancelled(true))
+                        .build();
+                layer.setItem(slot, paneGuiItem);
             }
         });
 

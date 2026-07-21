@@ -14,6 +14,7 @@ public final class PrizeState {
     private boolean rarityRevealed = false;
     private boolean sizeRevealed = false;
     private boolean fullyRevealed = false;
+    private boolean hide = true;
 
     public PrizeState(
             @NotNull ItemStack originalStack,
@@ -41,27 +42,36 @@ public final class PrizeState {
     }
 
     public boolean isTypeRevealed() {
-        return typeRevealed;
+        return typeRevealed || fullyRevealed;
     }
 
     public void setTypeRevealed(boolean typeRevealed) {
         this.typeRevealed = typeRevealed;
+        if (typeRevealed) {
+            this.hide = false;
+        }
     }
 
     public boolean isRarityRevealed() {
-        return rarityRevealed;
+        return rarityRevealed || fullyRevealed;
     }
 
     public void setRarityRevealed(boolean rarityRevealed) {
         this.rarityRevealed = rarityRevealed;
+        if (rarityRevealed) {
+            this.hide = false;
+        }
     }
 
     public boolean isSizeRevealed() {
-        return sizeRevealed;
+        return sizeRevealed || fullyRevealed;
     }
 
     public void setSizeRevealed(boolean sizeRevealed) {
         this.sizeRevealed = sizeRevealed;
+        if (sizeRevealed) {
+            this.hide = false;
+        }
     }
 
     public boolean isFullyRevealed() {
@@ -74,6 +84,15 @@ public final class PrizeState {
             this.typeRevealed = true;
             this.rarityRevealed = true;
             this.sizeRevealed = true;
+            this.hide = false;
         }
+    }
+
+    public boolean isHide() {
+        return hide && !fullyRevealed && !typeRevealed && !rarityRevealed && !sizeRevealed;
+    }
+
+    public void setHide(boolean hide) {
+        this.hide = hide;
     }
 }

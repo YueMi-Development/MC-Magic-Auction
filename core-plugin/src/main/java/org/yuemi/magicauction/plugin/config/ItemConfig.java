@@ -53,7 +53,7 @@ public final class ItemConfig {
     private final String baseItem;
     private final Material material;
     private final String displayName;
-    private final List<String> lore;
+    private final String desc;
     private final int width;
     private final int height;
     private final int customModelData;
@@ -65,7 +65,7 @@ public final class ItemConfig {
     private final String type;
 
     private final boolean hasDisplayNameOverride;
-    private final boolean hasLoreOverride;
+    private final boolean hasDescOverride;
     private final boolean hasCustomModelDataOverride;
 
     public ItemConfig(
@@ -73,7 +73,7 @@ public final class ItemConfig {
             @Nullable String baseItem,
             @Nullable Material material,
             @Nullable String displayName,
-            @Nullable List<String> lore,
+            @Nullable String desc,
             int width,
             int height,
             int customModelData,
@@ -82,7 +82,7 @@ public final class ItemConfig {
             @NotNull List<String> commands,
             @NotNull List<RewardEntry> rewards,
             boolean hasDisplayNameOverride,
-            boolean hasLoreOverride,
+            boolean hasDescOverride,
             boolean hasCustomModelDataOverride,
             @NotNull String rarity,
             @NotNull String type
@@ -91,7 +91,7 @@ public final class ItemConfig {
         this.baseItem = baseItem;
         this.material = material != null ? material : Material.STONE;
         this.displayName = displayName;
-        this.lore = lore;
+        this.desc = desc;
         this.width = Math.max(1, width);
         this.height = Math.max(1, height);
         this.customModelData = customModelData;
@@ -100,7 +100,7 @@ public final class ItemConfig {
         this.commands = commands;
         this.rewards = rewards;
         this.hasDisplayNameOverride = hasDisplayNameOverride;
-        this.hasLoreOverride = hasLoreOverride;
+        this.hasDescOverride = hasDescOverride;
         this.hasCustomModelDataOverride = hasCustomModelDataOverride;
         this.rarity = rarity.toLowerCase();
         this.type = type.toLowerCase();
@@ -127,8 +127,8 @@ public final class ItemConfig {
     }
 
     @Nullable
-    public List<String> getLore() {
-        return lore;
+    public String getDesc() {
+        return desc;
     }
 
     public int getWidth() {
@@ -200,11 +200,9 @@ public final class ItemConfig {
                 meta.displayName(mm.deserialize(displayName));
                 modified = true;
             }
-            if (hasLoreOverride && lore != null) {
+            if (hasDescOverride && desc != null) {
                 List<net.kyori.adventure.text.Component> adventureLore = new ArrayList<>();
-                for (String line : lore) {
-                    adventureLore.add(mm.deserialize(line));
-                }
+                adventureLore.add(mm.deserialize("<white>" + desc + "</white>"));
                 meta.lore(adventureLore);
                 modified = true;
             }
@@ -236,7 +234,7 @@ public final class ItemConfig {
         }
 
         String displayName = config.getString("display-name", null);
-        List<String> lore = config.contains("lore") ? config.getStringList("lore") : null;
+        String desc = config.getString("desc", null);
         int width = config.getInt("width", 1);
         int height = config.getInt("height", 1);
         int customModelData = config.getInt("custom-model-data", 0);
@@ -262,7 +260,7 @@ public final class ItemConfig {
         }
 
         boolean hasDisplayNameOverride = config.contains("display-name");
-        boolean hasLoreOverride = config.contains("lore");
+        boolean hasDescOverride = config.contains("desc");
         boolean hasCustomModelDataOverride = config.contains("custom-model-data");
 
         String rarity = config.getString("rarity");
@@ -286,9 +284,9 @@ public final class ItemConfig {
         }
 
         return new ItemConfig(
-                id, baseItem, material, displayName, lore, width, height, 
+                id, baseItem, material, displayName, desc, width, height, 
                 customModelData, worth, virtualItem, commands, rewards,
-                hasDisplayNameOverride, hasLoreOverride, hasCustomModelDataOverride,
+                hasDisplayNameOverride, hasDescOverride, hasCustomModelDataOverride,
                 rarity, type
         );
     }

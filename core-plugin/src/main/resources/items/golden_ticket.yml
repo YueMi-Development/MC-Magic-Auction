@@ -3,9 +3,7 @@ rarity: "common"
 type: "consumable"
 base-item: "minecraft:paper"
 display-name: "<yellow>Golden Ticket"
-lore:
-  - "<gray>Allows entering exclusive auctions!"
-  - "<dark_gray>Size: 3x1"
+desc: "Allows entering exclusive auctions!"
 width: 3
 height: 1
 custom-model-data: 1001

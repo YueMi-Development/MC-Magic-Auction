@@ -3,9 +3,7 @@ rarity: "rare"
 type: "scroll"
 base-item: "minecraft:map"
 display-name: "<aqua>Ancient Scroll"
-lore:
-  - "<gray>Contains lost magic auction secrets."
-  - "<dark_gray>Size: 2x1"
+desc: "Contains lost magic auction secrets."
 width: 2
 height: 1
 custom-model-data: 1003

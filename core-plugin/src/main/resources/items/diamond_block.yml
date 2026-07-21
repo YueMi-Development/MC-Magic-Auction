@@ -3,8 +3,7 @@ rarity: "legendary"
 type: "collectible"
 base-item: "minecraft:diamond_block"
 display-name: "<aqua>Diamond Block"
-lore:
-  - "<gray>A solid block of pure diamond."
+desc: "A solid block of pure diamond."
 width: 1
 height: 1
 custom-model-data: 0
