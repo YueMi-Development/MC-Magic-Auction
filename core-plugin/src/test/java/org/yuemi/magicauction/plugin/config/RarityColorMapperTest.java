@@ -86,4 +86,19 @@ class RarityColorMapperTest {
     void caseInsensitive_mixed() {
         assertEquals("dark_red", RarityColorMapper.resolve("Dark_Red"));
     }
+
+    @Test
+    void purpleAlias_resolvesToDarkPurple() {
+        assertEquals("dark_purple", RarityColorMapper.resolve("purple"));
+    }
+
+    @Test
+    void toTag_purpleAlias() {
+        assertEquals("<dark_purple>", RarityColorMapper.toTag("purple"));
+    }
+
+    @Test
+    void toCloseTag_purpleAlias() {
+        assertEquals("</dark_purple>", RarityColorMapper.toCloseTag("purple"));
+    }
 }

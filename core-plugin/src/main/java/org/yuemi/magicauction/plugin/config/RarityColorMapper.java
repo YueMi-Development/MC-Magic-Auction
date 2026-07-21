@@ -46,6 +46,8 @@ public final class RarityColorMapper {
         Map<String, String> aliases = new HashMap<>();
         // "orange" has no MiniMessage tag — map to the nearest visual equivalent
         aliases.put("orange", "gold");
+        // "purple" has no MiniMessage tag — map to the nearest visual equivalent
+        aliases.put("purple", "dark_purple");
         COLOR_ALIASES = Collections.unmodifiableMap(aliases);
     }
 
