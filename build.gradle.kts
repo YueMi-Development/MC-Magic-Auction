@@ -21,4 +21,8 @@ subprojects {
         maven("https://repo.yuemi.my.id/repository/maven-releases/")
         maven("https://repo.yuemi.my.id/repository/maven-public/")
     }
+
+    tasks.withType<Test>().configureEach {
+        useJUnitPlatform()
+    }
 }

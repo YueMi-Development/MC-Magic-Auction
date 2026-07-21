@@ -7,7 +7,16 @@ on:
   pull_request:
 
 jobs:
-  build:
+  # ── Run unit tests across all modules in parallel ────────────
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        module:
+          - module-seeders
+          - module-matchs
+          - module-bot
+          - core-plugin
     runs-on: ubuntu-latest
 
     steps:
@@ -24,8 +33,30 @@ jobs:
       - name: Grant gradlew permission
         run: chmod +x gradlew
 
-      - name: Build all modules
-        run: ./gradlew clean build --no-daemon
+      - name: Run tests for ${{ matrix.module }}
+        run: ./gradlew :${{ matrix.module }}:test --no-daemon
+
+  # ── Build shaded plugin JAR (after all tests pass) ──────────
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+
+      - name: Grant gradlew permission
+        run: chmod +x gradlew
+
+      - name: Build shaded plugin JAR
+        run: ./gradlew build -x test --no-daemon
 
       - name: Upload plugin jar
         uses: actions/upload-artifact@v4

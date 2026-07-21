@@ -6,8 +6,16 @@ on:
       - "v*"
 
 jobs:
-  # ── Quick compile check ────────────────────────────────────
+  # ── Run unit tests across all modules in parallel ───────────
   validate:
+    strategy:
+      fail-fast: false
+      matrix:
+        module:
+          - module-seeders
+          - module-matchs
+          - module-bot
+          - core-plugin
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -23,8 +31,8 @@ jobs:
       - name: Grant gradlew permission
         run: chmod +x gradlew
 
-      - name: Compile all modules
-        run: ./gradlew clean compileJava compileTestJava --no-daemon
+      - name: Run tests for ${{ matrix.module }}
+        run: ./gradlew :${{ matrix.module }}:test --no-daemon
 
   # ── Sync version & contributors (pushes commits) ───────────
   prepare:
