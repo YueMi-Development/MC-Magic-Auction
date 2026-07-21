@@ -1142,6 +1142,8 @@ public final class AuctionSession {
                 int itemWidth = state.getConfig().getWidth();
                 int itemHeight = state.getConfig().getHeight();
 
+                final int finalI = i;
+
                 ItemStack blackGlass = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
                 ItemMeta meta = blackGlass.getItemMeta();
                 if (meta != null) {
@@ -1150,6 +1152,7 @@ public final class AuctionSession {
                 }
                 GuiItem paneGuiItem = guiApi.createItemBuilder()
                         .item(blackGlass)
+                        .condition(player -> finalI > currentRevealStep)
                         .onClick((p, ctx) -> ctx.getEvent().setCancelled(true))
                         .build();
 
