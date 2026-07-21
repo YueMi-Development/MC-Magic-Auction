@@ -148,6 +148,13 @@ public final class ArenaConfig {
         int maxItems = config.getInt("max-items", -1);
         if (minItems == -1) minItems = totalRewardCount;
         if (maxItems == -1) maxItems = totalRewardCount;
+
+        if (minItems > maxItems) {
+            throw new IllegalArgumentException(
+                "Arena '" + id + "': min-items (" + minItems
+                + ") cannot be greater than max-items (" + maxItems + ")"
+            );
+        }
         int startEvents = config.getInt("start-events", 0);
 
         return new ArenaConfig(id, name, thinkingTime, bidDuration, basePrice, multipliers, rewards, events, minItems, maxItems, startEvents);

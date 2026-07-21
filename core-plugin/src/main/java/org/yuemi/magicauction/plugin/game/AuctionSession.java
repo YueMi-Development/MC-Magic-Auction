@@ -83,6 +83,9 @@ public final class AuctionSession {
         generatePrizesFromArena();
     }
 
+    private static final int GRID_ROWS = 6;
+    private static final int GRID_COLS = 9;
+
     private void generatePrizesFromArena() {
         if (arena.getRewards().isEmpty()) {
             manager.getPlugin().getLogger().warning("Arena " + arena.getId() + " has no rewards! Auction will have no prizes.");
@@ -108,88 +111,123 @@ public final class AuctionSession {
             targetCount = min + random.nextInt(max - min + 1);
         }
 
-        List<ArenaConfig.PrizeEntry> candidates = new ArrayList<>(pool);
-        boolean[][] occupied = new boolean[6][9];
+        // --- Phase 1: Resolve ItemConfigs (validate size, warn on missing) ---
+        List<ItemConfig> resolvedConfigs = new ArrayList<>();
+        for (ArenaConfig.PrizeEntry entry : pool) {
+            ItemConfig config = manager.getItemConfig(entry.getItemId());
+            if (config == null) {
+                manager.getPlugin().getLogger().warning(
+                    "Arena " + arena.getId() + ": item '" + entry.getItemId()
+                    + "' has no local config — skipping. Add a config in items/ or ensure it is registered."
+                );
+                continue;
+            }
+            int w = Math.min(config.getWidth(), GRID_COLS);
+            int h = Math.min(config.getHeight(), GRID_ROWS);
+            if (w != config.getWidth() || h != config.getHeight()) {
+                manager.getPlugin().getLogger().warning(
+                    "Arena " + arena.getId() + ": item '" + entry.getItemId()
+                    + "' size " + config.getWidth() + "x" + config.getHeight()
+                    + " exceeds " + GRID_ROWS + "x" + GRID_COLS + " grid — clamped to " + w + "x" + h + "."
+                );
+            }
+            resolvedConfigs.add(config);
+        }
+
+        targetCount = Math.min(targetCount, resolvedConfigs.size());
+
+        // --- Phase 2: Two-pass grid placement ---
+        boolean[] configPlaced = new boolean[resolvedConfigs.size()];
+        int[][] configPositions = new int[resolvedConfigs.size()][];
+        boolean[][] occupied = new boolean[GRID_ROWS][GRID_COLS];
         int placedCount = 0;
 
-        int index = 0;
-        while (placedCount < targetCount && index < candidates.size()) {
-            ArenaConfig.PrizeEntry entry = candidates.get(index);
-            boolean placed = tryPlaceItem(entry, occupied);
-            if (placed) {
+        // Pass 1: ordered linear scan
+        for (int i = 0; i < resolvedConfigs.size() && placedCount < targetCount; i++) {
+            ItemConfig config = resolvedConfigs.get(i);
+            int pw = Math.min(config.getWidth(), GRID_COLS);
+            int ph = Math.min(config.getHeight(), GRID_ROWS);
+            int[] pos = tryFindPosition(pw, ph, occupied);
+            if (pos != null) {
+                markOccupied(occupied, pos[0], pos[1], pw, ph);
+                configPlaced[i] = true;
+                configPositions[i] = pos;
                 placedCount++;
-                index++;
-            } else {
-                boolean fallbackPlaced = false;
-                int failedTries = 0;
-                int fallbackIndex = index + 1;
-                while (fallbackIndex < candidates.size() && failedTries < 3) {
-                    ArenaConfig.PrizeEntry fallbackEntry = candidates.get(fallbackIndex);
-                    if (tryPlaceItem(fallbackEntry, occupied)) {
-                        candidates.remove(fallbackIndex);
-                        placedCount++;
-                        fallbackPlaced = true;
-                        break;
-                    }
-                    failedTries++;
-                    fallbackIndex++;
-                }
-                index++;
             }
+        }
+
+        // Pass 2: full sweep for any still-unplaced items
+        if (placedCount < targetCount) {
+            for (int i = 0; i < resolvedConfigs.size() && placedCount < targetCount; i++) {
+                if (configPlaced[i]) continue;
+                ItemConfig config = resolvedConfigs.get(i);
+                int pw = Math.min(config.getWidth(), GRID_COLS);
+                int ph = Math.min(config.getHeight(), GRID_ROWS);
+                int[] pos = tryFindPosition(pw, ph, occupied);
+                if (pos != null) {
+                    markOccupied(occupied, pos[0], pos[1], pw, ph);
+                    configPlaced[i] = true;
+                    configPositions[i] = pos;
+                    placedCount++;
+                }
+            }
+        }
+
+        // Warning on shortfall
+        if (placedCount < targetCount) {
+            manager.getPlugin().getLogger().warning(
+                "Arena " + arena.getId() + ": only placed " + placedCount + "/" + targetCount
+                + " prizes — grid full or pool exhausted."
+            );
+        }
+
+        // --- Phase 3: Create ItemStacks and PrizeStates for placed items ---
+        for (int i = 0; i < resolvedConfigs.size(); i++) {
+            if (!configPlaced[i]) continue;
+            ItemConfig config = resolvedConfigs.get(i);
+            int[] pos = configPositions[i];
+
+            ItemStack stack = config.createItemStack(1);
+            generatedPrizes.add(stack);
+
+            PrizeState pState = new PrizeState(stack, config, pos);
+            org.bukkit.inventory.meta.ItemMeta meta = stack.getItemMeta();
+            if (meta != null) {
+                org.bukkit.NamespacedKey key = new org.bukkit.NamespacedKey(manager.getPlugin(), "auction_item_uid");
+                meta.getPersistentDataContainer().set(key, org.bukkit.persistence.PersistentDataType.STRING, pState.getUniqueId().toString());
+                stack.setItemMeta(meta);
+            }
+            prizeStates.add(pState);
         }
     }
 
-    private boolean tryPlaceItem(ArenaConfig.PrizeEntry entry, boolean[][] occupied) {
-        ItemStack stack = null;
-        ItemConfig itemConfig = null;
-        int width = 1;
-        int height = 1;
-
-        ItemConfig localConfig = manager.getItemConfig(entry.getItemId());
-        if (localConfig != null) {
-            itemConfig = localConfig;
-            stack = localConfig.createItemStack(entry.getAmount());
-            width = localConfig.getWidth();
-            height = localConfig.getHeight();
-        }
-
-        if (stack == null) return false;
-
-        for (int y = 0; y <= 6 - height; y++) {
-            for (int x = 0; x <= 9 - width; x++) {
-                boolean overlaps = false;
-                for (int dy = 0; dy < height; dy++) {
-                    for (int dx = 0; dx < width; dx++) {
-                        if (occupied[y + dy][x + dx]) {
-                            overlaps = true;
-                            break;
-                        }
-                    }
-                    if (overlaps) break;
-                }
-
-                if (!overlaps) {
-                    for (int dy = 0; dy < height; dy++) {
-                        for (int dx = 0; dx < width; dx++) {
-                            occupied[y + dy][x + dx] = true;
-                        }
-                    }
-                    generatedPrizes.add(stack);
-                    if (itemConfig != null) {
-                        PrizeState pState = new PrizeState(stack, itemConfig, new int[]{y, x});
-                        org.bukkit.inventory.meta.ItemMeta meta = stack.getItemMeta();
-                        if (meta != null) {
-                            org.bukkit.NamespacedKey key = new org.bukkit.NamespacedKey(manager.getPlugin(), "auction_item_uid");
-                            meta.getPersistentDataContainer().set(key, org.bukkit.persistence.PersistentDataType.STRING, pState.getUniqueId().toString());
-                            stack.setItemMeta(meta);
-                        }
-                        prizeStates.add(pState);
-                    }
-                    return true;
+    @Nullable
+    private int[] tryFindPosition(int width, int height, boolean[][] occupied) {
+        for (int y = 0; y <= GRID_ROWS - height; y++) {
+            for (int x = 0; x <= GRID_COLS - width; x++) {
+                if (!hasOverlap(occupied, y, x, width, height)) {
+                    return new int[]{y, x};
                 }
             }
         }
+        return null;
+    }
+
+    private boolean hasOverlap(boolean[][] occupied, int row, int col, int width, int height) {
+        for (int dy = 0; dy < height; dy++) {
+            for (int dx = 0; dx < width; dx++) {
+                if (occupied[row + dy][col + dx]) return true;
+            }
+        }
         return false;
+    }
+
+    private void markOccupied(boolean[][] occupied, int row, int col, int width, int height) {
+        for (int dy = 0; dy < height; dy++) {
+            for (int dx = 0; dx < width; dx++) {
+                occupied[row + dy][col + dx] = true;
+            }
+        }
     }
 
     public void start() {
