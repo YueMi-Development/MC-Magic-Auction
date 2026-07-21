@@ -629,7 +629,15 @@ public final class AuctionSession {
                         currentBids.put(player.getUniqueId(), botBid);
                         bidOrder.add(player.getUniqueId());
                         broadcast("<gray>" + player.getName() + " placed a bid.");
-                        
+
+                        // Notify real players with a sound
+                        for (Player other : players) {
+                            if (other.getUniqueId().equals(player.getUniqueId())) continue;
+                            if (manager.isBot(other)) continue;
+                            if (currentBids.containsKey(other.getUniqueId())) continue;
+                            other.playSound(other.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 0.5f, 1.8f);
+                        }
+
                         if (currentBids.size() >= players.size()) {
                             startGraphicsState();
                         }
@@ -702,12 +710,14 @@ public final class AuctionSession {
                         bid = org.yuemi.libs.api.util.NumberUtils.parseSuffix(input);
                     } catch (IllegalArgumentException e) {
                         player.sendMessage(MiniMessage.miniMessage().deserialize("<red>Invalid amount. Use a number (e.g. 1000, 1.5k)."));
+                        playConfigSound(player, "container.bid.sounds.invalid", "minecraft:entity.villager.angry");
                         Bukkit.getScheduler().runTaskLater(manager.getPlugin(), () -> openSinglePlayerBidding(player, binPrice), 3L);
                         return;
                     }
 
                     if (bid <= 0) {
                         player.sendMessage(MiniMessage.miniMessage().deserialize("<red>Bid must be greater than 0!"));
+                        playConfigSound(player, "container.bid.sounds.invalid", "minecraft:entity.villager.angry");
                         Bukkit.getScheduler().runTaskLater(manager.getPlugin(), () -> openSinglePlayerBidding(player, binPrice), 3L);
                         return;
                     }
@@ -718,6 +728,7 @@ public final class AuctionSession {
                         double balance = provider.getBalance(player);
                         if (bid > balance) {
                             player.sendMessage(MiniMessage.miniMessage().deserialize("<red>Bid exceeds your balance! Balance: $" + org.yuemi.libs.api.util.NumberUtils.formatSuffix(balance)));
+                            playConfigSound(player, "container.bid.sounds.invalid", "minecraft:entity.villager.angry");
                             Bukkit.getScheduler().runTaskLater(manager.getPlugin(), () -> openSinglePlayerBidding(player, binPrice), 3L);
                             return;
                         }
@@ -725,7 +736,20 @@ public final class AuctionSession {
 
                     currentBids.put(player.getUniqueId(), bid);
                     bidOrder.add(player.getUniqueId());
-                    player.sendMessage(MiniMessage.miniMessage().deserialize("<green>Bid: <yellow>$" + org.yuemi.libs.api.util.NumberUtils.formatSuffix(bid)));
+
+                    // Play success sound to the bidder
+                    playConfigSound(player, "container.bid.sounds.success", "minecraft:entity.villager.trade");
+
+                    // Notify all players that this player placed a bid
+                    broadcast("<gray>" + player.getName() + " placed a bid.");
+
+                    // Notify other waiting players with a brief sound
+                    for (Player other : players) {
+                        if (other.getUniqueId().equals(player.getUniqueId())) continue;
+                        if (manager.isBot(other)) continue;
+                        if (currentBids.containsKey(other.getUniqueId())) continue;
+                        other.playSound(other.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 0.5f, 1.8f);
+                    }
 
                     if (currentBids.size() >= players.size()) {
                         Bukkit.getScheduler().runTask(manager.getPlugin(), this::startGraphicsState);
@@ -735,6 +759,7 @@ public final class AuctionSession {
                 })
                 .onClose(player -> {
                     if (!currentBids.containsKey(player.getUniqueId())) {
+                        playConfigSound(player, "container.bid.sounds.cancel", "minecraft:entity.villager.no");
                         Bukkit.getScheduler().runTaskLater(manager.getPlugin(), () -> openSinglePlayerBidding(player, binPrice), 1L);
                     }
                 })
@@ -1352,6 +1377,21 @@ public final class AuctionSession {
         String name = manager.getPlugin().getConfig().getString("container.preview.placeholder_block", "GLASS");
         Material material = Material.getMaterial(name);
         return material != null ? material : Material.GLASS;
+    }
+
+    /**
+     * Play a namespaced sound from config to a player.
+     * Silently ignores missing or invalid config values.
+     */
+    private void playConfigSound(@NotNull Player player, @NotNull String configPath, @NotNull String fallbackKey) {
+        String keyStr = manager.getPlugin().getConfig().getString(configPath, fallbackKey);
+        if (keyStr == null) return;
+        var key = org.bukkit.NamespacedKey.fromString(keyStr.toLowerCase());
+        if (key == null) return;
+        Sound sound = org.bukkit.Registry.SOUND_EVENT.get(key);
+        if (sound != null) {
+            player.playSound(player.getLocation(), sound, 1.0f, 1.0f);
+        }
     }
 
     @NotNull

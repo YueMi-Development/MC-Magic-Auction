@@ -1,6 +1,6 @@
 # MagicAuction Configuration
 # Do not change the config-version value manually.
-config-version: 4
+config-version: 5
 
 # Matchmaking settings
 matchmaking:
@@ -35,6 +35,21 @@ container:
     # but the item's size is still unknown.
     # Accepts any Bukkit Material name.
     placeholder_block: "GLASS"
+
+  bid:
+    # Sound events played during bidding
+    sounds:
+      # Played to the bidder when they successfully place a bid.
+      # Accepts a Minecraft namespaced sound key.
+      success: "minecraft:entity.villager.trade"
+
+      # Played when a player closes the anvil without placing a bid.
+      # Accepts a Minecraft namespaced sound key.
+      cancel: "minecraft:entity.villager.no"
+
+      # Played when a player's bid is invalid (format error, zero, or exceeds balance).
+      # Accepts a Minecraft namespaced sound key.
+      invalid: "minecraft:entity.villager.angry"
 
   reveal:
     # Whether the container reveal system is enabled globally.
