@@ -1,0 +1,14 @@
+id: dragon_breath_bottled
+rarity: legendary
+type: consumable
+base-item: minecraft:dragon_breath
+display-name: Bottled Dragon Breath
+desc: The concentrated breath of the Ender Dragon.
+width: 1
+height: 1
+worth: 600.0
+virtual-item: false
+rewards:
+- type: item
+  id: minecraft:dragon_breath
+  amount: 1

@@ -1,0 +1,19 @@
+id: beast_cage_massive
+rarity: legendary
+type: trophy
+base-item: minecraft:iron_bars
+display-name: Massive Beast Cage
+desc: An enormous cage built to contain a feral mythical beast.
+width: 5
+height: 4
+worth: 2200.0
+virtual-item: false
+rewards:
+- type: item
+  id: minecraft:iron_bars
+  amount: 48
+- type: item
+  id: minecraft:chain
+  amount: 16
+- type: command
+  value: give %player% minecraft:iron_door 3

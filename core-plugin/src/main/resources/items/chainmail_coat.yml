@@ -1,0 +1,14 @@
+id: chainmail_coat
+rarity: uncommon
+type: armor
+base-item: minecraft:chainmail_chestplate
+display-name: Chainmail Coat
+desc: A flexible coat of interlocking metal rings.
+width: 1
+height: 2
+worth: 60.0
+virtual-item: false
+rewards:
+- type: item
+  id: minecraft:chainmail_chestplate
+  amount: 1

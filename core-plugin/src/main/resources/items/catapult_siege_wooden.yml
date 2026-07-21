@@ -1,0 +1,10 @@
+id: catapult_siege_wooden
+rarity: rare
+type: tool
+base-item: minecraft:piston
+display-name: Siege Catapult
+desc: A wooden siege engine designed to hurl massive projectiles.
+width: 5
+height: 5
+worth: 500.0
+virtual-item: true

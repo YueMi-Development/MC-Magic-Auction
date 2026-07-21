@@ -1,0 +1,10 @@
+id: pocket_watch_vintage
+rarity: super_rare
+type: accessory
+base-item: minecraft:clock
+display-name: Vintage Pocket Watch
+desc: A beautifully crafted golden timepiece.
+width: 1
+height: 1
+worth: 320.0
+virtual-item: true

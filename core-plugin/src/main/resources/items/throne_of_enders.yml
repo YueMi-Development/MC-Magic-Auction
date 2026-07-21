@@ -1,0 +1,10 @@
+id: throne_of_enders
+rarity: mythical
+type: trophy
+base-item: minecraft:purpur_block
+display-name: Throne of the Enders
+desc: A majestic throne carved from purpur, once sat upon by the End's ruler.
+width: 3
+height: 4
+worth: 4200.0
+virtual-item: true

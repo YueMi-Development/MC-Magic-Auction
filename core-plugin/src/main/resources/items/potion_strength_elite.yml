@@ -1,0 +1,10 @@
+id: potion_strength_elite
+rarity: rare
+type: consumable
+base-item: minecraft:potion
+display-name: Elite Strength Potion
+desc: Grants immense physical power for a short time.
+width: 1
+height: 1
+worth: 160.0
+virtual-item: true

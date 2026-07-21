@@ -1,0 +1,17 @@
+id: titanium_ingot
+rarity: rare
+type: material
+base-item: minecraft:iron_ingot
+display-name: Titanium Ingot
+desc: A lightweight but incredibly strong metal ingot.
+width: 1
+height: 1
+worth: 180.0
+virtual-item: false
+rewards:
+- type: item
+  id: minecraft:iron_ingot
+  amount: 8
+- type: item
+  id: minecraft:flint
+  amount: 4

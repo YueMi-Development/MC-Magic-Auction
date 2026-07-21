@@ -1,0 +1,17 @@
+id: obelisk_ender_void
+rarity: mythical
+type: trophy
+base-item: minecraft:obsidian
+display-name: Ender Void Obelisk
+desc: A tall obsidian obelisk humming with dark ender energy.
+width: 2
+height: 5
+worth: 3800.0
+virtual-item: false
+rewards:
+- type: item
+  id: minecraft:obsidian
+  amount: 32
+- type: item
+  id: minecraft:crying_obsidian
+  amount: 16

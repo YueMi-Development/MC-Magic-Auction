@@ -1,0 +1,17 @@
+id: forged_anvil_giant
+rarity: super_rare
+type: tool
+base-item: minecraft:anvil
+display-name: Giant Forged Anvil
+desc: A colossal anvil used by master dwarven smiths.
+width: 3
+height: 2
+worth: 480.0
+virtual-item: false
+rewards:
+- type: item
+  id: minecraft:anvil
+  amount: 2
+- type: item
+  id: minecraft:iron_block
+  amount: 16

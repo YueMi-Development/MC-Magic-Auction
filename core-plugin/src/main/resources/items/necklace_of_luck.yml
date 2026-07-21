@@ -1,0 +1,10 @@
+id: necklace_of_luck
+rarity: rare
+type: accessory
+base-item: minecraft:rabbit_foot
+display-name: Necklace of Luck
+desc: A rabbits foot pendant that bends fortune your way.
+width: 1
+height: 1
+worth: 175.0
+virtual-item: true

@@ -1,0 +1,15 @@
+id: scroll_ancient_wisdom
+rarity: legendary
+type: scroll
+base-item: minecraft:map
+display-name: Scroll of Ancient Wisdom
+desc: Knowledge from civilizations long forgotten.
+width: 1
+height: 2
+worth: 850.0
+virtual-item: false
+rewards:
+- type: command
+  value: give %player% minecraft:knowledge_book 1
+- type: command
+  value: xp add %player% 2500

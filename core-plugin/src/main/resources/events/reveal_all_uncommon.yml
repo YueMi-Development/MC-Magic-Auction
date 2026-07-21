@@ -1,0 +1,8 @@
+name: "Uncommon Exposure"
+desc: "All uncommon items are fully revealed!"
+only-once: true
+actions:
+  - type: "full"
+    selection: "all"
+    count: 0
+    rarity: "uncommon"

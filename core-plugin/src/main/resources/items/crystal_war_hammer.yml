@@ -1,0 +1,16 @@
+id: crystal_war_hammer
+rarity: super_rare
+type: weapon
+base-item: minecraft:diamond_pickaxe
+display-name: Crystal War Hammer
+desc: A hammer forged from solid prismarine crystal.
+width: 2
+height: 2
+worth: 400.0
+virtual-item: false
+rewards:
+- type: item
+  id: minecraft:diamond_pickaxe
+  amount: 1
+- type: command
+  value: give %player% minecraft:diamond_pickaxe[ efficiency=5,unbreaking=3 ] 1

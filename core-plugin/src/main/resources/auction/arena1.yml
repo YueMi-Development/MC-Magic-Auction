@@ -3,8 +3,8 @@ name: "Golden Mystery Arena"
 thinking-time: 15
 bid-time: 30
 base-price: 100
-min-items: 5
-max-items: 8
+min-items: 12
+max-items: 18
 multipliers:
   - 2.0
   - 1.5
@@ -15,8 +15,11 @@ events:
   - "reveal_all_common"
   - "reveal_one_type_random"
   - "reveal_one_size_random"
+  - "reveal_all_uncommon"
   - "reveal_three_types"
   - "reveal_two_sizes"
+  - "reveal_all_consumables"
+  - "quiet_round"
 rewards:
   - id: "golden_ticket"
     amount: 3
@@ -31,16 +34,38 @@ rewards:
   - id: "baked_bread"
     amount: 2
   - id: "bright_torch"
-    amount: 2
+    amount: 3
   - id: "redstone_dust_pile"
     amount: 3
   - id: "sweet_apple"
     amount: 2
   - id: "copper_ingot_bundle"
-    amount: 2
+    amount: 3
   - id: "oak_log_stack"
     amount: 3
   - id: "leather_sheet"
     amount: 2
   - id: "gunpowder_keg"
     amount: 3
+  - id: "leather_boots_swift"
+    amount: 2
+  - id: "enchanted_cookie"
+    amount: 3
+  - id: "mushroom_stew_hearty"
+    amount: 2
+  - id: "cooked_beef_steak"
+    amount: 3
+  - id: "lumberjack_axe"
+    amount: 2
+  - id: "silk_enchanted"
+    amount: 2
+  - id: "flag_of_champions"
+    amount: 2
+  - id: "iron_sword_sturdy"
+    amount: 1
+  - id: "fishing_rod_lucky"
+    amount: 2
+  - id: "bone_sword_marrow"
+    amount: 2
+  - id: "chainmail_coat"
+    amount: 1

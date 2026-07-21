@@ -1,0 +1,17 @@
+id: hourglass_of_time
+rarity: rare
+type: collectible
+base-item: minecraft:glass
+display-name: Hourglass of Time
+desc: An ornate hourglass filled with glowing golden sand.
+width: 1
+height: 2
+worth: 220.0
+virtual-item: false
+rewards:
+- type: item
+  id: minecraft:glass
+  amount: 4
+- type: item
+  id: minecraft:glowstone_dust
+  amount: 16

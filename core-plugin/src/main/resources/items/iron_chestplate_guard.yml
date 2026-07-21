@@ -1,0 +1,14 @@
+id: iron_chestplate_guard
+rarity: uncommon
+type: armor
+base-item: minecraft:iron_chestplate
+display-name: Iron Chestplate of Guard
+desc: A sturdy iron chestplate worn by royal guards.
+width: 1
+height: 2
+worth: 75.0
+virtual-item: false
+rewards:
+- type: item
+  id: minecraft:iron_chestplate
+  amount: 1

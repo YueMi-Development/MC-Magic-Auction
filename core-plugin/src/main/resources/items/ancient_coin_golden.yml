@@ -1,0 +1,10 @@
+id: ancient_coin_golden
+rarity: super_rare
+type: collectible
+base-item: minecraft:gold_nugget
+display-name: Ancient Golden Coin
+desc: A coin from a lost empire, prized by collectors.
+width: 1
+height: 1
+worth: 300.0
+virtual-item: true

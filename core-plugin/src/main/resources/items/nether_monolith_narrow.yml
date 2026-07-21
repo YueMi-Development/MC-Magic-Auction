@@ -1,0 +1,17 @@
+id: nether_monolith_narrow
+rarity: legendary
+type: trophy
+base-item: minecraft:nether_bricks
+display-name: Nether Monolith
+desc: A narrow standing stone scorched by nether fire.
+width: 1
+height: 4
+worth: 950.0
+virtual-item: false
+rewards:
+- type: item
+  id: minecraft:nether_bricks
+  amount: 32
+- type: item
+  id: minecraft:shroomlight
+  amount: 8

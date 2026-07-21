@@ -1,0 +1,10 @@
+id: royal_carpet_woven
+rarity: rare
+type: collectible
+base-item: minecraft:red_carpet
+display-name: Royal Woven Carpet
+desc: An intricately woven carpet fit for a king's throne room.
+width: 4
+height: 2
+worth: 280.0
+virtual-item: true

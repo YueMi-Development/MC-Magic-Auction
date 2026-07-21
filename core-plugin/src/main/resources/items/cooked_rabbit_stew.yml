@@ -1,0 +1,14 @@
+id: cooked_rabbit_stew
+rarity: uncommon
+type: consumable
+base-item: minecraft:rabbit_stew
+display-name: Hearty Rabbit Stew
+desc: A slow-cooked stew with herbs and root vegetables.
+width: 1
+height: 1
+worth: 45.0
+virtual-item: false
+rewards:
+- type: item
+  id: minecraft:rabbit_stew
+  amount: 2

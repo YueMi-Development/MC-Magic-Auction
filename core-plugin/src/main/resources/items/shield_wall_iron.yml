@@ -1,0 +1,17 @@
+id: shield_wall_iron
+rarity: rare
+type: armor
+base-item: minecraft:shield
+display-name: Iron Shield Wall
+desc: A massive tower shield used to hold the line against armies.
+width: 5
+height: 2
+worth: 350.0
+virtual-item: false
+rewards:
+- type: item
+  id: minecraft:shield
+  amount: 3
+- type: item
+  id: minecraft:iron_block
+  amount: 8

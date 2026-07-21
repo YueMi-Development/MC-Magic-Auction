@@ -1,0 +1,14 @@
+id: diamond_pickaxe
+rarity: super_rare
+type: tool
+base-item: minecraft:diamond_pickaxe
+display-name: Diamond Pickaxe
+desc: A masterwork pickaxe capable of mining obsidian.
+width: 1
+height: 2
+worth: 350.0
+virtual-item: false
+rewards:
+- type: item
+  id: minecraft:diamond_pickaxe
+  amount: 1

@@ -1,0 +1,19 @@
+id: grand_bookshelf_arcane
+rarity: super_rare
+type: collectible
+base-item: minecraft:bookshelf
+display-name: Grand Arcane Bookshelf
+desc: An enormous bookshelf filled with ancient spell tomes.
+width: 2
+height: 4
+worth: 550.0
+virtual-item: false
+rewards:
+- type: item
+  id: minecraft:bookshelf
+  amount: 16
+- type: item
+  id: minecraft:book
+  amount: 32
+- type: command
+  value: give %player% minecraft:enchanted_book 1

@@ -1,0 +1,17 @@
+id: shield_phalanx_long
+rarity: uncommon
+type: armor
+base-item: minecraft:shield
+display-name: Phalanx Long Shield
+desc: An elongated shield used in close-rank battle formations.
+width: 2
+height: 3
+worth: 70.0
+virtual-item: false
+rewards:
+- type: item
+  id: minecraft:shield
+  amount: 1
+- type: item
+  id: minecraft:iron_ingot
+  amount: 4

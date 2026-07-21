@@ -1,0 +1,6 @@
+name: "Double Vision"
+desc: "Two random items are fully revealed!"
+actions:
+  - type: "full"
+    selection: "random"
+    count: 2

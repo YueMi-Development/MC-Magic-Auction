@@ -1,0 +1,10 @@
+id: tapestry_nether_epic
+rarity: legendary
+type: collectible
+base-item: minecraft:red_banner
+display-name: Nether War Tapestry
+desc: A grand woven tapestry depicting ancient Nether battles.
+width: 6
+height: 2
+worth: 1400.0
+virtual-item: true

@@ -1,0 +1,8 @@
+name: "Tool Shed Open"
+desc: "All tool-type items are fully revealed!"
+only-once: true
+actions:
+  - type: "full"
+    selection: "all"
+    count: 0
+    type_id: "tool"

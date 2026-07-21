@@ -1,0 +1,10 @@
+id: ancient_totem_pillar
+rarity: mythical
+type: collectible
+base-item: minecraft:stripped_oak_log
+display-name: Ancient Totem Pillar
+desc: A towering wooden pillar carved with faces of forgotten spirits.
+width: 1
+height: 6
+worth: 3200.0
+virtual-item: true

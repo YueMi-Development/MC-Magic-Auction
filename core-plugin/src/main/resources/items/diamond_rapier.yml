@@ -1,0 +1,14 @@
+id: diamond_rapier
+rarity: rare
+type: weapon
+base-item: minecraft:diamond_sword
+display-name: Diamond Rapier
+desc: A swift and elegant diamond blade.
+width: 1
+height: 2
+worth: 250.0
+virtual-item: false
+rewards:
+- type: item
+  id: minecraft:diamond_sword
+  amount: 1

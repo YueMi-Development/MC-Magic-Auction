@@ -1,0 +1,10 @@
+id: amulet_protection
+rarity: super_rare
+type: accessory
+base-item: minecraft:chain
+display-name: Amulet of Protection
+desc: An ancient amulet that shields from all harm.
+width: 1
+height: 1
+worth: 350.0
+virtual-item: true

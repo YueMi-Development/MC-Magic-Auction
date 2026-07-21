@@ -1,0 +1,16 @@
+id: sculpture_marble
+rarity: rare
+type: collectible
+base-item: minecraft:quartz_block
+display-name: Marble Sculpture
+desc: An intricately carved marble statue of a mythical beast.
+width: 2
+height: 2
+worth: 250.0
+virtual-item: false
+rewards:
+- type: item
+  id: minecraft:quartz_block
+  amount: 16
+- type: command
+  value: give %player% minecraft:smooth_quartz 8

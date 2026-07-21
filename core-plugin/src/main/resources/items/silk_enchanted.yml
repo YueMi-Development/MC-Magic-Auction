@@ -1,0 +1,14 @@
+id: silk_enchanted
+rarity: uncommon
+type: material
+base-item: minecraft:string
+display-name: Enchanted Silk
+desc: Magically imbued silk that never tears.
+width: 1
+height: 1
+worth: 55.0
+virtual-item: false
+rewards:
+- type: item
+  id: minecraft:string
+  amount: 16

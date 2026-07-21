@@ -1,0 +1,10 @@
+id: ring_of_strength
+rarity: rare
+type: accessory
+base-item: minecraft:gold_nugget
+display-name: Ring of Strength
+desc: A golden ring that amplifies your physical power.
+width: 1
+height: 1
+worth: 150.0
+virtual-item: true

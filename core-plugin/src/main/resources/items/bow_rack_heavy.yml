@@ -1,0 +1,17 @@
+id: bow_rack_heavy
+rarity: super_rare
+type: weapon
+base-item: minecraft:bow
+display-name: Heavy Bow Rack
+desc: A rack holding five enchanted bows of various makes.
+width: 5
+height: 1
+worth: 650.0
+virtual-item: false
+rewards:
+- type: item
+  id: minecraft:bow
+  amount: 3
+- type: item
+  id: minecraft:arrow
+  amount: 128

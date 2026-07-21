@@ -1,0 +1,10 @@
+id: clock_timepiece
+rarity: rare
+type: tool
+base-item: minecraft:clock
+display-name: Ancient Timepiece
+desc: A clock that always shows the perfect moment.
+width: 1
+height: 1
+worth: 130.0
+virtual-item: true

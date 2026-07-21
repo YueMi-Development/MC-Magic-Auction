@@ -1,0 +1,10 @@
+id: shears_enchanted
+rarity: rare
+type: tool
+base-item: minecraft:shears
+display-name: Enchanted Shears
+desc: Shears that harvest wool without damaging sheep.
+width: 1
+height: 1
+worth: 120.0
+virtual-item: true

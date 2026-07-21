@@ -1,0 +1,14 @@
+id: compass_ancient
+rarity: legendary
+type: tool
+base-item: minecraft:compass
+display-name: Ancient Compass
+desc: Points not north, but toward the nearest treasure.
+width: 1
+height: 1
+worth: 700.0
+virtual-item: false
+rewards:
+- type: item
+  id: minecraft:compass
+  amount: 1

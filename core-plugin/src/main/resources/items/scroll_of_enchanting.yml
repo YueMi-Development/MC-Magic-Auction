@@ -1,0 +1,17 @@
+id: scroll_of_enchanting
+rarity: super_rare
+type: scroll
+base-item: minecraft:paper
+display-name: Scroll of Enchanting
+desc: Contains the secrets to unlock powerful enchantments.
+width: 1
+height: 2
+worth: 450.0
+virtual-item: false
+rewards:
+- type: item
+  id: minecraft:experience_bottle
+  amount: 32
+- type: item
+  id: minecraft:lapis_lazuli
+  amount: 16

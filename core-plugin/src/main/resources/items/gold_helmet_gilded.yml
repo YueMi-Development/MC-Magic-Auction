@@ -1,0 +1,14 @@
+id: gold_helmet_gilded
+rarity: rare
+type: armor
+base-item: minecraft:golden_helmet
+display-name: Gilded Gold Helmet
+desc: A ceremonial helmet adorned with precious gems.
+width: 1
+height: 1
+worth: 150.0
+virtual-item: false
+rewards:
+- type: item
+  id: minecraft:golden_helmet
+  amount: 1

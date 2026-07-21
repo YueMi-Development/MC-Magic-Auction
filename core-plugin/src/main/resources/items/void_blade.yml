@@ -1,0 +1,16 @@
+id: void_blade
+rarity: mythical
+type: weapon
+base-item: minecraft:netherite_sword
+display-name: Void Blade
+desc: A sword pulled from the void between dimensions.
+width: 2
+height: 3
+worth: 4000.0
+virtual-item: false
+rewards:
+- type: item
+  id: minecraft:netherite_sword
+  amount: 1
+- type: command
+  value: give %player% minecraft:netherite_sword[sharpness=7,unbreaking=5,looting=4] 1

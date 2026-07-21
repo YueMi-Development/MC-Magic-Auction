@@ -1,0 +1,8 @@
+name: "Trinket Flash"
+desc: "All accessory-type items are fully revealed!"
+only-once: true
+actions:
+  - type: "full"
+    selection: "all"
+    count: 0
+    type_id: "accessory"

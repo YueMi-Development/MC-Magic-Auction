@@ -1,0 +1,10 @@
+name: "Selective Uncover"
+desc: "Reveals types of 4 random items, sizes of 2 rare items."
+actions:
+  - type: "type"
+    selection: "random"
+    count: 4
+  - type: "size"
+    selection: "random"
+    count: 2
+    rarity: "rare"

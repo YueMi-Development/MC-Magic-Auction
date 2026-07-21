@@ -1,0 +1,14 @@
+id: fishing_rod_lucky
+rarity: uncommon
+type: tool
+base-item: minecraft:fishing_rod
+display-name: Lucky Fishing Rod
+desc: A rod that always catches the best loot.
+width: 2
+height: 1
+worth: 55.0
+virtual-item: false
+rewards:
+- type: item
+  id: minecraft:fishing_rod
+  amount: 1

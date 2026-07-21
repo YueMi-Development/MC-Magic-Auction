@@ -1,0 +1,10 @@
+id: bracelet_of_haste
+rarity: uncommon
+type: accessory
+base-item: minecraft:stick
+display-name: Bracelet of Haste
+desc: A woven bracelet that makes you move faster.
+width: 1
+height: 1
+worth: 60.0
+virtual-item: true

@@ -1,0 +1,17 @@
+id: bone_sword_marrow
+rarity: uncommon
+type: weapon
+base-item: minecraft:bone
+display-name: Bone Sword of Marrow
+desc: A sharpened bone carved with ancient runes.
+width: 1
+height: 2
+worth: 45.0
+virtual-item: false
+rewards:
+- type: item
+  id: minecraft:bone
+  amount: 8
+- type: item
+  id: minecraft:bone_meal
+  amount: 16

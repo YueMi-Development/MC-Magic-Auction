@@ -1,0 +1,10 @@
+id: spire_crystal_tall
+rarity: rare
+type: material
+base-item: minecraft:end_rod
+display-name: Tall Crystal Spire
+desc: A slender spire of pure end crystal, radiating pale light.
+width: 1
+height: 5
+worth: 350.0
+virtual-item: true

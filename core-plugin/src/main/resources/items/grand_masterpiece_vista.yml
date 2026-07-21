@@ -1,0 +1,16 @@
+id: grand_masterpiece_vista
+rarity: mythical
+type: collectible
+base-item: minecraft:painting
+display-name: Grand Vista Masterpiece
+desc: A breathtaking panoramic painting of the End realms.
+width: 3
+height: 5
+worth: 4500.0
+virtual-item: false
+rewards:
+- type: item
+  id: minecraft:painting
+  amount: 8
+- type: command
+  value: give %player% minecraft:painting[variant='minecraft:water'] 1

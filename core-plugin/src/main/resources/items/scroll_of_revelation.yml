@@ -1,0 +1,10 @@
+id: scroll_of_revelation
+rarity: mythical
+type: scroll
+base-item: minecraft:paper
+display-name: Scroll of Revelation
+desc: Reveals the true nature of all hidden things.
+width: 2
+height: 1
+worth: 3500.0
+virtual-item: true

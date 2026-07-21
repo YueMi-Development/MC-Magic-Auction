@@ -3,8 +3,8 @@ name: "Eldritch Dragon Sanctuary"
 thinking-time: 15
 bid-time: 30
 base-price: 2500
-min-items: 12
-max-items: 18
+min-items: 20
+max-items: 30
 multipliers:
   - 5.0
   - 3.5
@@ -17,28 +17,89 @@ events:
   - "reveal_all_sizes"
   - "reveal_large_items"
   - "reveal_five_rare"
+  - "reveal_all_legendary"
+  - "reveal_all_collectibles"
+  - "reveal_two_random_full"
 rewards:
   - id: "diamond_block"
-    amount: 3
+    amount: 4
   - id: "emerald_block"
     amount: 3
   - id: "netherite_ingot"
-    amount: 2
+    amount: 3
   - id: "dragon_egg"
-    amount: 1
+    amount: 2
   - id: "enchanted_golden_apple_op"
     amount: 2
   - id: "beacon_light"
     amount: 2
   - id: "netherite_scrap_debris"
-    amount: 2
+    amount: 3
   - id: "trident_lightning"
-    amount: 1
+    amount: 2
   - id: "elytra_wings"
-    amount: 1
+    amount: 2
   - id: "nether_star_divine"
     amount: 1
   - id: "god_sword"
     amount: 1
   - id: "magic_crown"
+    amount: 1
+  - id: "void_blade"
+    amount: 1
+  - id: "phoenix_feather"
+    amount: 1
+  - id: "scroll_of_revelation"
+    amount: 1
+  - id: "netherite_shovel"
+    amount: 1
+  - id: "netherite_battle_axe"
+    amount: 1
+  - id: "bow_starlight"
+    amount: 1
+  - id: "shadow_dagger"
+    amount: 1
+  - id: "netherite_helmet"
+    amount: 1
+  - id: "compass_ancient"
+    amount: 1
+  - id: "dragon_breath_bottled"
+    amount: 1
+  - id: "cloak_invisibility"
+    amount: 1
+  - id: "scroll_of_summoning"
+    amount: 1
+  - id: "trophy_golden"
+    amount: 1
+  - id: "dragon_scales"
+    amount: 1
+  - id: "crystal_void_shattered"
+    amount: 1
+  - id: "painting_masterpiece"
+    amount: 1
+  - id: "potion_healing_greater"
+    amount: 1
+  - id: "amulet_protection"
+    amount: 1
+  - id: "ancient_coin_golden"
+    amount: 1
+  - id: "chorus_fruit_arcane"
+    amount: 1
+  - id: "dragon_head_mount"
+    amount: 1
+  - id: "portal_frame_crying"
+    amount: 1
+  - id: "throne_of_enders"
+    amount: 1
+  - id: "ancient_totem_pillar"
+    amount: 1
+  - id: "grand_masterpiece_vista"
+    amount: 1
+  - id: "obelisk_ender_void"
+    amount: 1
+  - id: "altar_enchanting_massive"
+    amount: 1
+  - id: "sarcophagus_pharaoh"
+    amount: 1
+  - id: "beast_cage_massive"
     amount: 1

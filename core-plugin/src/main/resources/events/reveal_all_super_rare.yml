@@ -1,0 +1,8 @@
+name: "Super Rare Exposure"
+desc: "All super rare items are fully revealed!"
+only-once: true
+actions:
+  - type: "full"
+    selection: "all"
+    count: 0
+    rarity: "super_rare"

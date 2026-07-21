@@ -1,0 +1,16 @@
+id: trophy_golden
+rarity: legendary
+type: collectible
+base-item: minecraft:gold_block
+display-name: Golden Trophy
+desc: A massive golden trophy awarded to champions.
+width: 2
+height: 2
+worth: 1100.0
+virtual-item: false
+rewards:
+- type: item
+  id: minecraft:gold_block
+  amount: 3
+- type: command
+  value: give %player% minecraft:gold_ingot 16

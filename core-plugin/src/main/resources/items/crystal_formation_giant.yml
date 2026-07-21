@@ -1,0 +1,17 @@
+id: crystal_formation_giant
+rarity: super_rare
+type: collectible
+base-item: minecraft:amethyst_block
+display-name: Giant Crystal Formation
+desc: A massive cluster of amethyst crystals growing from a stone base.
+width: 3
+height: 3
+worth: 750.0
+virtual-item: false
+rewards:
+- type: item
+  id: minecraft:amethyst_block
+  amount: 16
+- type: item
+  id: minecraft:amethyst_shard
+  amount: 32

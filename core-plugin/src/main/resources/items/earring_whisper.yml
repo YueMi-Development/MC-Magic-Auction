@@ -1,0 +1,10 @@
+id: earring_whisper
+rarity: legendary
+type: accessory
+base-item: minecraft:gold_nugget
+display-name: Earring of Whispers
+desc: Lets you hear the secrets of the ancients.
+width: 1
+height: 1
+worth: 800.0
+virtual-item: true

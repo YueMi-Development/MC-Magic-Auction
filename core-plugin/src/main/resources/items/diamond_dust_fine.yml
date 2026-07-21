@@ -1,0 +1,10 @@
+id: diamond_dust_fine
+rarity: super_rare
+type: material
+base-item: minecraft:gunpowder
+display-name: Fine Diamond Dust
+desc: Finely ground diamond powder used in advanced crafting.
+width: 1
+height: 1
+worth: 280.0
+virtual-item: true

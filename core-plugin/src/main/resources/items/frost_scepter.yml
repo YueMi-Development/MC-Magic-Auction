@@ -1,0 +1,10 @@
+id: frost_scepter
+rarity: rare
+type: weapon
+base-item: minecraft:stick
+display-name: Frost Scepter
+desc: Channels freezing magic to slow your foes.
+width: 1
+height: 2
+worth: 180.0
+virtual-item: true

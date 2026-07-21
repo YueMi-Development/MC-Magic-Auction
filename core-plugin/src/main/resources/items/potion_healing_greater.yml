@@ -1,0 +1,10 @@
+id: potion_healing_greater
+rarity: super_rare
+type: consumable
+base-item: minecraft:potion
+display-name: Greater Healing Potion
+desc: Restores all health and cures most ailments.
+width: 1
+height: 1
+worth: 220.0
+virtual-item: true

@@ -1,0 +1,14 @@
+id: netherite_battle_axe
+rarity: super_rare
+type: weapon
+base-item: minecraft:netherite_axe
+display-name: Netherite Battle Axe
+desc: A devastating weapon forged in the depths of the Nether.
+width: 2
+height: 2
+worth: 600.0
+virtual-item: false
+rewards:
+- type: item
+  id: minecraft:netherite_axe
+  amount: 1

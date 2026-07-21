@@ -3,8 +3,8 @@ name: "Infernal Deep Auction"
 thinking-time: 15
 bid-time: 30
 base-price: 250
-min-items: 6
-max-items: 10
+min-items: 14
+max-items: 20
 multipliers:
   - 3.0
   - 2.0
@@ -16,31 +16,62 @@ events:
   - "reveal_two_full"
   - "reveal_five_rare"
   - "reveal_large_items"
+  - "reveal_all_rare"
   - "reveal_two_sizes"
+  - "reveal_mixed_batch"
+  - "reveal_all_scrolls"
 rewards:
   - id: "lucky_charm"
-    amount: 2
-  - id: "crystal_shard"
     amount: 3
+  - id: "crystal_shard"
+    amount: 4
   - id: "mysterious_box"
-    amount: 1
+    amount: 2
   - id: "iron_block_heavy"
-    amount: 2
+    amount: 3
   - id: "lapis_block_dusty"
-    amount: 2
+    amount: 3
   - id: "golden_apple_sweet"
-    amount: 1
+    amount: 2
   - id: "ender_pearl_orb"
     amount: 2
   - id: "leather_saddle"
-    amount: 1
+    amount: 2
   - id: "obsidian_shard"
-    amount: 2
+    amount: 3
   - id: "slime_ball_sticky"
-    amount: 2
+    amount: 3
   - id: "magma_cream_hot"
     amount: 2
   - id: "glistering_melon"
     amount: 2
   - id: "blaze_powder_jar"
     amount: 2
+  - id: "golden_hoe_harvest"
+    amount: 2
+  - id: "honey_bottle_golden"
+    amount: 2
+  - id: "pumpkin_pie_supreme"
+    amount: 2
+  - id: "cooked_rabbit_stew"
+    amount: 2
+  - id: "bracelet_of_haste"
+    amount: 2
+  - id: "iron_chestplate_guard"
+    amount: 2
+  - id: "titanium_ingot"
+    amount: 2
+  - id: "scroll_of_teleportation"
+    amount: 1
+  - id: "hourglass_of_time"
+    amount: 1
+  - id: "ring_of_strength"
+    amount: 1
+  - id: "rune_stone_power"
+    amount: 2
+  - id: "spear_guardians"
+    amount: 1
+  - id: "mace_shattering"
+    amount: 1
+  - id: "clock_timepiece"
+    amount: 1

@@ -1,0 +1,8 @@
+name: "Library Burst"
+desc: "All scroll-type items are fully revealed!"
+only-once: true
+actions:
+  - type: "full"
+    selection: "all"
+    count: 0
+    type_id: "scroll"

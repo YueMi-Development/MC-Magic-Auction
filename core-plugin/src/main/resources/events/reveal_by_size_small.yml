@@ -1,0 +1,9 @@
+name: "Small Items Reveal"
+desc: "All small items (1x1) are fully revealed!"
+only-once: true
+actions:
+  - type: "full"
+    selection: "all"
+    count: 0
+    conditions:
+      max-total-size: 1

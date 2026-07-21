@@ -1,0 +1,16 @@
+id: turtle_shell_ward
+rarity: super_rare
+type: armor
+base-item: minecraft:turtle_helmet
+display-name: Turtle Shell Ward
+desc: An ancient turtle shell that grants water breathing.
+width: 1
+height: 1
+worth: 350.0
+virtual-item: false
+rewards:
+- type: item
+  id: minecraft:turtle_helmet
+  amount: 1
+- type: command
+  value: give %player% minecraft:turtle_helmet[respiration=3,aqua_affinity=1] 1

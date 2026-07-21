@@ -1,0 +1,8 @@
+name: "Arsenal Reveal"
+desc: "All weapon-type items are fully revealed!"
+only-once: true
+actions:
+  - type: "full"
+    selection: "all"
+    count: 0
+    type_id: "weapon"

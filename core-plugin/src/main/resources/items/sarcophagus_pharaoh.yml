@@ -1,0 +1,20 @@
+id: sarcophagus_pharaoh
+rarity: legendary
+type: collectible
+base-item: minecraft:chiseled_sandstone
+display-name: Pharaoh's Sarcophagus
+desc: An ornate sarcophagus of a long-dead pharaoh, inlaid with gold.
+width: 6
+height: 4
+worth: 3000.0
+virtual-item: false
+rewards:
+- type: item
+  id: minecraft:chiseled_sandstone
+  amount: 16
+- type: item
+  id: minecraft:gold_block
+  amount: 4
+- type: item
+  id: minecraft:bone
+  amount: 24

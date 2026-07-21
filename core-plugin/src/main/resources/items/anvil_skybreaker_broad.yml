@@ -1,0 +1,14 @@
+id: anvil_skybreaker_broad
+rarity: uncommon
+type: weapon
+base-item: minecraft:iron_sword
+display-name: Skybreaker Broadsword
+desc: A wide-bladed sword forged for mounted combat.
+width: 3
+height: 1
+worth: 65.0
+virtual-item: false
+rewards:
+- type: item
+  id: minecraft:iron_sword
+  amount: 1

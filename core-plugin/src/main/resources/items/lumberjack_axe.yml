@@ -1,0 +1,14 @@
+id: lumberjack_axe
+rarity: common
+type: tool
+base-item: minecraft:iron_axe
+display-name: Lumberjack Axe
+desc: A heavy axe that fells trees in a single swing.
+width: 1
+height: 2
+worth: 35.0
+virtual-item: false
+rewards:
+- type: item
+  id: minecraft:iron_axe
+  amount: 1

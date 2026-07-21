@@ -1,0 +1,10 @@
+id: ladder_of_ascension
+rarity: super_rare
+type: tool
+base-item: minecraft:ladder
+display-name: Ladder of Ascension
+desc: A mystic ladder said to reach the heavens themselves.
+width: 2
+height: 6
+worth: 700.0
+virtual-item: true

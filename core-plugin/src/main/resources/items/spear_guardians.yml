@@ -1,0 +1,10 @@
+id: spear_guardians
+rarity: rare
+type: weapon
+base-item: minecraft:tripwire_hook
+display-name: Spear of Guardians
+desc: An ancient guardian's spear, still crackling with power.
+width: 1
+height: 3
+worth: 250.0
+virtual-item: true

@@ -1,0 +1,10 @@
+id: golden_hoe_harvest
+rarity: uncommon
+type: tool
+base-item: minecraft:golden_hoe
+display-name: Golden Hoe of Harvest
+desc: A blessed hoe that makes crops grow instantly.
+width: 1
+height: 2
+worth: 40.0
+virtual-item: true

@@ -1,0 +1,17 @@
+id: guardian_statue_poseidon
+rarity: legendary
+type: trophy
+base-item: minecraft:prismarine_bricks
+display-name: Guardian Statue of Poseidon
+desc: A towering statue of an ancient sea guardian, encrusted with barnacles.
+width: 4
+height: 3
+worth: 1800.0
+virtual-item: false
+rewards:
+- type: item
+  id: minecraft:prismarine_bricks
+  amount: 32
+- type: item
+  id: minecraft:sea_lantern
+  amount: 8

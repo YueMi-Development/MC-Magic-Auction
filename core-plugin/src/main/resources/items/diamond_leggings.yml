@@ -1,0 +1,14 @@
+id: diamond_leggings
+rarity: rare
+type: armor
+base-item: minecraft:diamond_leggings
+display-name: Diamond Leggings
+desc: Gleaming leggings forged from pure diamond.
+width: 1
+height: 2
+worth: 300.0
+virtual-item: false
+rewards:
+- type: item
+  id: minecraft:diamond_leggings
+  amount: 1

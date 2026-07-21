@@ -1,0 +1,18 @@
+id: phoenix_feather
+rarity: mythical
+type: material
+base-item: minecraft:feather
+display-name: Phoenix Feather
+desc: A feather from a mythical phoenix, burning with eternal flame.
+width: 1
+height: 1
+worth: 3000.0
+virtual-item: false
+rewards:
+- type: item
+  id: minecraft:feather
+  amount: 1
+- type: command
+  value: give %player% minecraft:feather[fire_resistance=1] 1
+- type: command
+  value: xp add %player% 5000

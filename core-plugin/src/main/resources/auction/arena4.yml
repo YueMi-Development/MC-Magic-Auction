@@ -3,8 +3,8 @@ name: "Ancient Celestial Keep"
 thinking-time: 15
 bid-time: 30
 base-price: 1000
-min-items: 10
-max-items: 15
+min-items: 18
+max-items: 26
 multipliers:
   - 4.0
   - 3.0
@@ -17,21 +17,24 @@ events:
   - "reveal_five_rare"
   - "reveal_large_items"
   - "reveal_two_full"
+  - "reveal_all_legendary"
+  - "reveal_all_armor"
+  - "reveal_two_random_full"
 rewards:
   - id: "mysterious_box"
-    amount: 3
+    amount: 4
   - id: "diamond_block"
-    amount: 2
+    amount: 3
   - id: "emerald_block"
-    amount: 2
+    amount: 3
   - id: "netherite_ingot"
-    amount: 1
+    amount: 2
   - id: "wither_skeleton_skull_bone"
-    amount: 1
+    amount: 2
   - id: "shulker_shell_plated"
     amount: 2
   - id: "totem_of_undying_gold"
-    amount: 1
+    amount: 2
   - id: "heart_of_the_sea_blue"
     amount: 1
   - id: "sponge_wet_absorbent"
@@ -39,12 +42,64 @@ rewards:
   - id: "phantom_membrane_fabric"
     amount: 2
   - id: "enchanted_golden_apple_op"
-    amount: 1
+    amount: 2
   - id: "beacon_light"
-    amount: 1
+    amount: 2
   - id: "netherite_scrap_debris"
     amount: 2
   - id: "trident_lightning"
     amount: 1
   - id: "elytra_wings"
+    amount: 1
+  - id: "netherite_battle_axe"
+    amount: 1
+  - id: "crossbow_rapid"
+    amount: 1
+  - id: "bow_starlight"
+    amount: 1
+  - id: "shadow_dagger"
+    amount: 1
+  - id: "netherite_helmet"
+    amount: 1
+  - id: "compass_ancient"
+    amount: 1
+  - id: "dragon_breath_bottled"
+    amount: 1
+  - id: "cloak_invisibility"
+    amount: 1
+  - id: "earring_whisper"
+    amount: 1
+  - id: "scroll_of_summoning"
+    amount: 1
+  - id: "scroll_ancient_wisdom"
+    amount: 1
+  - id: "trophy_golden"
+    amount: 1
+  - id: "dragon_scales"
+    amount: 1
+  - id: "crystal_void_shattered"
+    amount: 1
+  - id: "painting_masterpiece"
+    amount: 1
+  - id: "potion_healing_greater"
+    amount: 1
+  - id: "amulet_protection"
+    amount: 1
+  - id: "altar_enchanting_massive"
+    amount: 1
+  - id: "crystal_formation_giant"
+    amount: 1
+  - id: "sarcophagus_pharaoh"
+    amount: 1
+  - id: "guardian_statue_poseidon"
+    amount: 1
+  - id: "furnace_blast_colossal"
+    amount: 1
+  - id: "golem_core_prismarine"
+    amount: 1
+  - id: "longsword_legendary"
+    amount: 1
+  - id: "nether_monolith_narrow"
+    amount: 1
+  - id: "tapestry_nether_epic"
     amount: 1
