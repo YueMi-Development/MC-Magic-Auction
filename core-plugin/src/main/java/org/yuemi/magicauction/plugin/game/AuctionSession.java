@@ -29,6 +29,7 @@ import org.yuemi.magicauction.matchs.AuctionMatchEvaluator;
 import org.yuemi.magicauction.matchs.model.Bid;
 import org.yuemi.magicauction.matchs.model.RoundContext;
 import org.yuemi.magicauction.matchs.model.RoundResult;
+import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 
 import java.util.*;
@@ -55,6 +56,7 @@ public final class AuctionSession {
     private final List<UUID> bidOrder = new ArrayList<>();
     
     private BukkitTask activeTask;
+    private BukkitTask bidCountdownTask;
     private Gui previewGui;
     private final List<ItemStack> generatedPrizes = new ArrayList<>();
     private final List<PrizeState> prizeStates = new ArrayList<>();
@@ -233,7 +235,7 @@ public final class AuctionSession {
     }
 
     public void start() {
-        broadcast("<green>Auction starting for arena: <yellow>" + arena.getName() + "</yellow> (Seed: " + seed + ")!");
+        broadcast("<green>Auction started in <yellow>" + arena.getName() + "</yellow>!");
         
         int startEventsCount = arena.getStartEvents();
         if (startEventsCount > 0) {
@@ -343,12 +345,10 @@ public final class AuctionSession {
     }
 
     private void executeEvent(@NotNull EventConfig event) {
-        broadcast("<gray>------------------------------------</gray>");
-        broadcast("<light_purple><bold>Event triggered:</bold> <yellow>" + event.getId().replace("_", " ") + "</yellow></light_purple>");
+        broadcast("<light_purple>Event: <yellow>" + event.getId().replace("_", " "));
         for (EventConfig.ActionEntry action : event.getActions()) {
             executeAction(action);
         }
-        broadcast("<gray>------------------------------------</gray>");
     }
 
     private void executeAction(@NotNull EventConfig.ActionEntry action) {
@@ -393,33 +393,12 @@ public final class AuctionSession {
         }
 
         for (PrizeState state : selected) {
-            String revealedDetail = "";
             switch (action.getType()) {
-                case "type" -> {
-                    state.setTypeRevealed(true);
-                    var typeInfo = TypeRegistry.get(state.getConfig().getType());
-                    String typeName = typeInfo != null ? typeInfo.getName() : state.getConfig().getType();
-                    revealedDetail = "Type: " + typeName;
-                }
-                case "rarity" -> {
-                    state.setRarityRevealed(true);
-                    var rarityInfo = RarityRegistry.get(state.getConfig().getRarity());
-                    String rarityName = rarityInfo != null ? rarityInfo.getName() : state.getConfig().getRarity();
-                    revealedDetail = "Rarity: " + rarityName;
-                }
-                case "size" -> {
-                    state.setSizeRevealed(true);
-                    revealedDetail = "Size: " + state.getConfig().getWidth() + "x" + state.getConfig().getHeight();
-                }
-                case "full" -> {
-                    state.setFullyRevealed(true);
-                    revealedDetail = "Item: " + state.getConfig().getDisplayName() + " (Full Info)";
-                }
+                case "type" -> state.setTypeRevealed(true);
+                case "rarity" -> state.setRarityRevealed(true);
+                case "size" -> state.setSizeRevealed(true);
+                case "full" -> state.setFullyRevealed(true);
             }
-
-            int row = state.getPosition()[0] + 1;
-            int col = state.getPosition()[1] + 1;
-            broadcast("<gray> - Revealed " + revealedDetail + " at Row " + row + ", Column " + col + "</gray>");
         }
     }
 
@@ -507,9 +486,6 @@ public final class AuctionSession {
         currentBids.clear();
         bidOrder.clear();
 
-        double multiplier = getMultiplier();
-        double binPrice = currentBasePrice * multiplier;
-
         // Apply round event
         EventConfig event = getRoundEvent();
         if (event != null) {
@@ -517,10 +493,7 @@ public final class AuctionSession {
             executeEvent(event);
         }
 
-        broadcast("<gray>------------------------------------");
-        broadcast("<green>Round " + currentRound + " Preview Starts!");
-        broadcast("<gray>BIN (Buy It Now) Price: <gold>$" + org.yuemi.libs.api.util.NumberUtils.formatSuffix(binPrice) + "</gold>");
-        broadcast("<gray>------------------------------------");
+        broadcast("<yellow>Round " + currentRound + " started!");
 
         this.previewGui = buildPreviewGui();
         for (Player player : players) {
@@ -609,11 +582,33 @@ public final class AuctionSession {
 
     private void startBiddingState() {
         cancelActiveTask();
+        cancelBidCountdownTask();
         biddingActive = true;
-        broadcast("<green>Thinking time over! Opening Anvil bidding...");
+        // Bidding phase begins — players see the anvil GUI
 
         double multiplier = getMultiplier();
         double binPrice = currentBasePrice * multiplier;
+        int totalSeconds = arena.getBidDuration();
+
+        // Start action bar countdown
+        bidCountdownTask = new BukkitRunnable() {
+            int secondsLeft = totalSeconds;
+            @Override
+            public void run() {
+                if (secondsLeft <= 0) {
+                    this.cancel();
+                    return;
+                }
+                for (Player player : players) {
+                    if (manager.isBot(player)) continue;
+                    if (currentBids.containsKey(player.getUniqueId())) continue;
+                    player.sendActionBar(MiniMessage.miniMessage().deserialize(
+                            "<gold>" + secondsLeft + "s</gold> <gray>|</gray> <yellow>$"
+                            + org.yuemi.libs.api.util.NumberUtils.formatSuffix(binPrice) + " BIN"));
+                }
+                secondsLeft--;
+            }
+        }.runTaskTimer(manager.getPlugin(), 0L, 20L);
 
         for (Player player : players) {
             if (manager.isBot(player)) {
@@ -623,7 +618,7 @@ public final class AuctionSession {
                         double botBid = simulateBotBid(binPrice);
                         currentBids.put(player.getUniqueId(), botBid);
                         bidOrder.add(player.getUniqueId());
-                        broadcast("<gray>" + player.getName() + " has submitted their bid.");
+                        broadcast("<gray>" + player.getName() + " placed a bid.");
                         
                         if (currentBids.size() >= players.size()) {
                             startGraphicsState();
@@ -633,7 +628,7 @@ public final class AuctionSession {
             } else if (!player.isOnline()) {
                 currentBids.put(player.getUniqueId(), 1.0);
                 bidOrder.add(player.getUniqueId());
-                broadcast("<gray>" + player.getName() + " is offline — skipped and bid set to $1.");
+                broadcast("<gray>" + player.getName() + " is offline — skipped.");
                 if (currentBids.size() >= players.size()) {
                     startGraphicsState();
                 }
@@ -646,18 +641,14 @@ public final class AuctionSession {
         activeTask = new BukkitRunnable() {
             @Override
             public void run() {
-                boolean forced = false;
                 for (Player player : players) {
                     if (!currentBids.containsKey(player.getUniqueId())) {
                         currentBids.put(player.getUniqueId(), 1.0);
                         bidOrder.add(player.getUniqueId());
-                        broadcast("<gray>" + player.getName() + " did not bid in time — forced bid of <gold>$1</gold>.");
-                        forced = true;
+                        broadcast("<gray>" + player.getName() + " missed the bid timer.");
                     }
                 }
-                if (forced) {
-                    broadcast("<gray>Bidding time ended.");
-                }
+                // No explicit broadcast — players see the graph opening
                 if (currentBids.size() >= players.size()) {
                     startGraphicsState();
                 }
@@ -684,7 +675,8 @@ public final class AuctionSession {
         }
 
         guiApi.createAnvilInputBuilder()
-                .title("Balance: $" + org.yuemi.libs.api.util.NumberUtils.formatSuffix(playerBalance))
+                .title("$" + org.yuemi.libs.api.util.NumberUtils.formatSuffix(playerBalance)
+                        + " | " + String.format("%.1f", getMultiplier()) + "x")
                 .initialText("0")
                 .leftItem(paper)
                 .closePolicy(ClosePolicy.CLOSE)
@@ -699,7 +691,7 @@ public final class AuctionSession {
                     try {
                         bid = org.yuemi.libs.api.util.NumberUtils.parseSuffix(input);
                     } catch (IllegalArgumentException e) {
-                        player.sendMessage(MiniMessage.miniMessage().deserialize("<red>Invalid bid! Must be a number or valid format (e.g. 10k)."));
+                        player.sendMessage(MiniMessage.miniMessage().deserialize("<red>Invalid amount. Use a number (e.g. 1000, 1.5k)."));
                         Bukkit.getScheduler().runTaskLater(manager.getPlugin(), () -> openSinglePlayerBidding(player, binPrice), 3L);
                         return;
                     }
@@ -723,7 +715,7 @@ public final class AuctionSession {
 
                     currentBids.put(player.getUniqueId(), bid);
                     bidOrder.add(player.getUniqueId());
-                    player.sendMessage(MiniMessage.miniMessage().deserialize("<green>Bid of <yellow>$" + org.yuemi.libs.api.util.NumberUtils.formatSuffix(bid) + "</yellow> registered."));
+                    player.sendMessage(MiniMessage.miniMessage().deserialize("<green>Bid: <yellow>$" + org.yuemi.libs.api.util.NumberUtils.formatSuffix(bid)));
 
                     if (currentBids.size() >= players.size()) {
                         Bukkit.getScheduler().runTask(manager.getPlugin(), this::startGraphicsState);
@@ -741,9 +733,10 @@ public final class AuctionSession {
 
     private void startGraphicsState() {
         cancelActiveTask();
+        cancelBidCountdownTask();
         biddingActive = false;
         closeGraphGui();
-        broadcast("<green>All bids collected! Simulating bid graphics...");
+        broadcast("<green>Bids are in!");
 
         double multiplier = getMultiplier();
         double binPrice = currentBasePrice * multiplier;
@@ -804,19 +797,35 @@ public final class AuctionSession {
         GuiApi guiApi = YueMiLibsProvider.getApi().getGui();
         var mm = MiniMessage.miniMessage();
 
-        String graphTitle = "Bidding Progress (" + (currentRound > arena.getMultipliers().size() ? "\u00A7lBONUS" : "Round " + currentRound) + ")";
+        double graphMultiplier = getMultiplier();
+        String roundLabel = currentRound > arena.getMultipliers().size() ? "\u00A7lBONUS" : "Round " + currentRound;
+        String graphTitle = "Bidding Progress (" + roundLabel + ", " + String.format("%.1f", graphMultiplier) + "x)";
         var builder = guiApi.createBuilder()
                 .title(graphTitle)
                 .rows(6)
                 .closePolicy(ClosePolicy.REOPEN);
 
+        ItemStack blackFiller = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
+        ItemMeta blackMeta = blackFiller.getItemMeta();
+        if (blackMeta != null) {
+            blackMeta.displayName(Component.text(" "));
+            blackMeta.lore(List.of(Component.text(" ")));
+            blackFiller.setItemMeta(blackMeta);
+        }
         GuiItem borderBlack = guiApi.createItemBuilder()
-                .item(new ItemStack(Material.BLACK_STAINED_GLASS_PANE))
+                .item(blackFiller)
                 .onClick((p, ctx) -> ctx.getEvent().setCancelled(true))
                 .build();
 
+        ItemStack grayFiller = new ItemStack(Material.GRAY_STAINED_GLASS_PANE);
+        ItemMeta grayMeta = grayFiller.getItemMeta();
+        if (grayMeta != null) {
+            grayMeta.displayName(Component.text(" "));
+            grayMeta.lore(List.of(Component.text(" ")));
+            grayFiller.setItemMeta(grayMeta);
+        }
         GuiItem borderGray = guiApi.createItemBuilder()
-                .item(new ItemStack(Material.GRAY_STAINED_GLASS_PANE))
+                .item(grayFiller)
                 .onClick((p, ctx) -> ctx.getEvent().setCancelled(true))
                 .build();
 
@@ -873,9 +882,9 @@ public final class AuctionSession {
                 SkullMeta skullMeta = (SkullMeta) skull.getItemMeta();
                 if (skullMeta != null) {
                     skullMeta.setOwningPlayer(p);
-                    skullMeta.displayName(mm.deserialize("<yellow>" + p.getName()));
+                    skullMeta.displayName(mm.deserialize("<italic:false><yellow>" + p.getName()));
                     skullMeta.lore(List.of(
-                            mm.deserialize("<gray>Bid: <gold>$" + org.yuemi.libs.api.util.NumberUtils.formatSuffix(bid))
+                            mm.deserialize("<italic:false><gray>Bid: <gold>$" + org.yuemi.libs.api.util.NumberUtils.formatSuffix(bid))
                     ));
                     skull.setItemMeta(skullMeta);
                 }
@@ -917,7 +926,7 @@ public final class AuctionSession {
                     ItemStack pane = new ItemStack(progressMaterial);
                     ItemMeta paneMeta = pane.getItemMeta();
                     if (paneMeta != null) {
-                        paneMeta.displayName(mm.deserialize("<gray>Progress"));
+                        paneMeta.displayName(mm.deserialize("<gray>$" + org.yuemi.libs.api.util.NumberUtils.formatSuffix(bid)));
                         pane.setItemMeta(paneMeta);
                     }
 
@@ -966,7 +975,7 @@ public final class AuctionSession {
             case PLAYER_WON -> {
                 Player winner = Bukkit.getPlayer(result.winnerId());
                 if (winner == null) {
-                    broadcast("<red>Winner disconnected unexpectedly. Auction cancelled.");
+                    broadcast("<red>Winner disconnected — auction cancelled.");
                     endSession();
                     return;
                 }
@@ -978,28 +987,22 @@ public final class AuctionSession {
                     provider.withdraw(winner, result.highestBid());
                 }
 
-                broadcast("<gold><bold>WINNER!</bold> <yellow>" + winner.getName()
-                        + "</yellow> won the auction with a bid of <gold>$"
-                        + org.yuemi.libs.api.util.NumberUtils.formatSuffix(result.highestBid()) + "</gold>!");
+                broadcast("<gold><bold>" + winner.getName() + " won!</bold> (<yellow>$"
+                        + org.yuemi.libs.api.util.NumberUtils.formatSuffix(result.highestBid()) + "</yellow>)");
                 startWinnerRevealAnimation(winner);
             }
             case NO_WINNER_CONTINUE -> {
-                broadcast("<red>No players matched the required BIN price of <gold>$"
-                        + org.yuemi.libs.api.util.NumberUtils.formatSuffix(result.binThreshold())
-                        + "</gold> in round " + currentRound + ".");
+                broadcast("<red>No winner in round " + currentRound + ". Next round...");
                 currentRound++;
                 startPreviewState();
             }
             case BONUS_ROUND_REQUIRED -> {
-                broadcast("<red>No players matched the required BIN price of <gold>$"
-                        + org.yuemi.libs.api.util.NumberUtils.formatSuffix(result.binThreshold())
-                        + "</gold> in round " + currentRound + ".");
-                broadcast("<light_purple><bold>BONUS ROUND!</bold></light_purple> <yellow>No winner yet and multiplier 1.0 is not configured. Starting a bonus round with multiplier 1.0!</yellow>");
+                broadcast("<light_purple><bold>BONUS ROUND!</bold> (1.0x multiplier)</light_purple>");
                 currentRound++;
                 startPreviewState();
             }
             case AUCTION_ENDED -> {
-                broadcast("<red><bold>AUCTION OVER!</bold> No winner. Items have been locked away.");
+                broadcast("<red><bold>Auction ended — no winner.");
                 endSession();
             }
         }
@@ -1027,21 +1030,27 @@ public final class AuctionSession {
                     // Award prizes
                     EconomyApi econ = YueMiLibsProvider.getApi().getEconomy();
                     var provider = econ.getActiveProvider();
-                    
+
                     boolean isBotWinner = manager.isBot(winner);
+                    long virtualCount = 0;
+                    long physicalCount = 0;
+                    double totalVirtualWorth = 0;
+                    double totalItemWorth = 0;
+
                     for (PrizeState prizeState : prizeStates) {
                         ItemStack stack = prizeState.getOriginalStack();
                         ItemConfig config = prizeState.getConfig();
                         if (config != null) {
                             if (config.isVirtualItem()) {
-                                // Virtual Item: Award worth to economy
-                                double totalWorth = config.getWorth() * stack.getAmount();
+                                double itemWorth = config.getWorth() * stack.getAmount();
+                                totalVirtualWorth += itemWorth;
+                                virtualCount++;
                                 if (provider != null && !isBotWinner) {
-                                    provider.deposit(winner, totalWorth);
-                                    winner.sendMessage(mm.deserialize("<green>Awarded <gold>$" + org.yuemi.libs.api.util.NumberUtils.formatSuffix(totalWorth) + "</gold> for virtual item: <yellow>" + config.getDisplayName() + "</yellow> (Worth: $" + org.yuemi.libs.api.util.NumberUtils.formatSuffix(config.getWorth()) + " each)"));
+                                    provider.deposit(winner, itemWorth);
                                 }
                             } else {
-                                // Non-virtual item: Award its config rewards list only!
+                                totalItemWorth += config.getWorth() * stack.getAmount();
+                                physicalCount++;
                                 for (ItemConfig.RewardEntry reward : config.getRewards()) {
                                     if ("command".equalsIgnoreCase(reward.getType()) && reward.getValue() != null) {
                                         String processedCmd = reward.getValue().replace("%player%", winner.getName());
@@ -1052,7 +1061,7 @@ public final class AuctionSession {
                                     } else if ("item".equalsIgnoreCase(reward.getType()) && reward.getItemId() != null && !isBotWinner) {
                                         int totalAmount = reward.getAmount() * stack.getAmount();
                                         ItemStack rewardStack = null;
-                                        
+
                                         // Resolve nested item from local items first
                                         ItemConfig rewardLocalConfig = manager.getItemConfig(reward.getItemId());
                                         if (rewardLocalConfig != null) {
@@ -1068,7 +1077,7 @@ public final class AuctionSession {
                                                 } catch (Exception ignored) {}
                                             }
                                         }
-                                        
+
                                         if (rewardStack != null) {
                                             Map<Integer, ItemStack> leftover = winner.getInventory().addItem(rewardStack);
                                             for (ItemStack leftoverItem : leftover.values()) {
@@ -1077,11 +1086,23 @@ public final class AuctionSession {
                                         }
                                     }
                                 }
-                                if (!isBotWinner) {
-                                    winner.sendMessage(mm.deserialize("<green>Received rewards for: <yellow>" + config.getDisplayName()));
-                                }
                             }
                         }
+                    }
+
+                    if (!isBotWinner) {
+                        double totalWorth = totalVirtualWorth + totalItemWorth;
+                        StringBuilder rewardMsg = new StringBuilder("<green><bold>Rewards!</bold> <gray>Total worth: <gold>$" + org.yuemi.libs.api.util.NumberUtils.formatSuffix(totalWorth) + "</gold>");
+                        if (virtualCount > 0) {
+                            rewardMsg.append(" <gray>(<gold>$" + org.yuemi.libs.api.util.NumberUtils.formatSuffix(totalVirtualWorth) + "</gold> virtual</gray>");
+                            if (physicalCount > 0) {
+                                rewardMsg.append(" <gray>+ " + physicalCount + " item" + (physicalCount > 1 ? "s" : "") + "</gray>");
+                            }
+                            rewardMsg.append(")");
+                        } else if (physicalCount > 0) {
+                            rewardMsg.append(" <gray>(" + physicalCount + " item" + (physicalCount > 1 ? "s" : "") + ")</gray>");
+                        }
+                        winner.sendMessage(mm.deserialize(rewardMsg.toString()));
                     }
                     
                     activeTask = new BukkitRunnable() {
@@ -1145,10 +1166,11 @@ public final class AuctionSession {
                 final int finalI = i;
 
                 ItemStack blackGlass = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
-                ItemMeta meta = blackGlass.getItemMeta();
-                if (meta != null) {
-                    meta.displayName(MiniMessage.miniMessage().deserialize("<red>???</red>"));
-                    blackGlass.setItemMeta(meta);
+                ItemMeta glassMeta = blackGlass.getItemMeta();
+                if (glassMeta != null) {
+                    glassMeta.displayName(Component.text(" "));
+                    glassMeta.lore(List.of(Component.text(" ")));
+                    blackGlass.setItemMeta(glassMeta);
                 }
                 GuiItem paneGuiItem = guiApi.createItemBuilder()
                         .item(blackGlass)
@@ -1196,6 +1218,13 @@ public final class AuctionSession {
         if (activeTask != null) {
             activeTask.cancel();
             activeTask = null;
+        }
+    }
+
+    private void cancelBidCountdownTask() {
+        if (bidCountdownTask != null) {
+            bidCountdownTask.cancel();
+            bidCountdownTask = null;
         }
     }
 
@@ -1250,6 +1279,7 @@ public final class AuctionSession {
 
     private void endSession() {
         cancelActiveTask();
+        cancelBidCountdownTask();
         closePreviewGui();
         closeGraphGui();
         closeRevealGui();
@@ -1269,10 +1299,10 @@ public final class AuctionSession {
                 .anyMatch(p -> !manager.isBot(p) && p.isOnline() && !p.getUniqueId().equals(disconnectedPlayer.getUniqueId()));
 
         if (!hasOtherRealPlayers) {
-            broadcast("<red>No real players remaining in the auction. Auction cancelled.");
+            broadcast("<red>All players left — auction cancelled.");
             endSession();
         } else {
-            broadcast("<gray>" + disconnectedPlayer.getName() + " disconnected. Skipping their bids for the rest of the auction.");
+            broadcast("<gray>" + disconnectedPlayer.getName() + " disconnected.");
             skipPlayerBid(disconnectedPlayer);
         }
     }
@@ -1288,7 +1318,7 @@ public final class AuctionSession {
      * @param deadPlayer the player who died
      */
     public void handlePlayerDeath(@NotNull Player deadPlayer) {
-        broadcast("<gray>" + deadPlayer.getName() + " died. Skipping their bids.");
+        broadcast("<gray>" + deadPlayer.getName() + " died.");
 
         // Set GUI close policies to CLOSE so the reopen handler does not
         // fight with the death screen when we close the inventory.

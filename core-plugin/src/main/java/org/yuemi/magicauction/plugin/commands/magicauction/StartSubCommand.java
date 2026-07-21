@@ -109,7 +109,8 @@ public final class StartSubCommand implements SubCommand {
         }
 
         auctionManager.startSession(arena, seed, targetPlayers);
-        sender.sendMessage(mm.deserialize("<green>Auction session started successfully with seed: <yellow>" + seed));
+        auctionManager.getPlugin().getLogger().info("Auction session started in arena '" + arena.getId() + "' with seed: " + seed + " — players: " + targetPlayers.stream().map(Player::getName).toList());
+        sender.sendMessage(mm.deserialize("<green>Auction session started successfully!"));
     }
 
     @Override

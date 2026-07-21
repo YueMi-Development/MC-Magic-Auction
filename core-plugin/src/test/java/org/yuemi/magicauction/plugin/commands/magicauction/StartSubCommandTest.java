@@ -4,6 +4,7 @@ import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -14,6 +15,7 @@ import org.yuemi.magicauction.plugin.game.AuctionManager;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -33,6 +35,9 @@ class StartSubCommandTest {
         botHandler = mock(BotHandler.class);
         sender = mock(CommandSender.class);
 
+        var plugin = mock(JavaPlugin.class);
+        when(plugin.getLogger()).thenReturn(Logger.getGlobal());
+        when(auctionManager.getPlugin()).thenReturn(plugin);
         when(auctionManager.getBotHandler()).thenReturn(botHandler);
         command = new StartSubCommand(auctionManager);
 

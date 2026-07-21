@@ -246,8 +246,8 @@ public final class AuctionManager {
             var mm = net.kyori.adventure.text.minimessage.MiniMessage.miniMessage();
             for (Player p : realPlayers) {
                 p.sendMessage(mm.deserialize(
-                        "<red>Matchmaking for arena <yellow>" + arena.getName()
-                        + "</yellow> timed out without enough players."));
+                        "<red>Matchmaking timed out — not enough players for <yellow>" + arena.getName()
+                        + "</yellow>."));
             }
             return;
         }
@@ -266,8 +266,8 @@ public final class AuctionManager {
             var mm = net.kyori.adventure.text.minimessage.MiniMessage.miniMessage();
             for (Player p : realPlayers) {
                 p.sendMessage(mm.deserialize(
-                        "<red>Matchmaking for arena <yellow>" + arena.getName()
-                        + "</yellow> cancelled: not enough players and bots are disabled."));
+                        "<red>Matchmaking cancelled — not enough players for <yellow>" + arena.getName()
+                        + "</yellow>."));
             }
             return;
         }
