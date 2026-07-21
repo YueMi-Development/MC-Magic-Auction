@@ -24,17 +24,12 @@ public final class RarityRegistry {
             this.name = name;
             this.description = description;
             this.color = color.toLowerCase();
-            
+
             if ("black".equalsIgnoreCase(color)) {
                 throw new IllegalArgumentException("Rarity color cannot be 'black' as it is reserved for unknown/masked states!");
             }
-            
-            Material mat = Material.matchMaterial(color.toUpperCase() + "_STAINED_GLASS_PANE");
-            if (mat == null) {
-                // Try alternate name mapping (e.g. orange -> orange)
-                mat = Material.matchMaterial(color.toUpperCase() + "_STAINED_GLASS_PANE");
-            }
-            this.glassPaneMaterial = mat != null ? mat : Material.GRAY_STAINED_GLASS_PANE;
+
+            this.glassPaneMaterial = GlassPaneMapper.getMaterial(color);
         }
 
         @NotNull

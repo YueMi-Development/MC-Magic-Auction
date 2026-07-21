@@ -201,16 +201,16 @@ public final class ItemConfig {
                 var rarityInfo = RarityRegistry.get(rarity);
                 String coloredName = plainName;
                 if (rarityInfo != null) {
-                    coloredName = "<" + rarityInfo.getColor() + ">" + plainName + "</" + rarityInfo.getColor() + ">";
+                    coloredName = RarityColorMapper.toTag(rarityInfo.getColor()) + plainName + RarityColorMapper.toCloseTag(rarityInfo.getColor());
                 }
-                meta.displayName(mm.deserialize(coloredName));
+                meta.displayName(mm.deserialize("<italic:false>" + coloredName));
                 modified = true;
             }
             if (hasDescOverride && desc != null) {
                 List<net.kyori.adventure.text.Component> adventureLore = new ArrayList<>();
-                // Force white color for description
+                // Force white color for description, no italics
                 String plainDesc = org.bukkit.ChatColor.stripColor(desc);
-                adventureLore.add(mm.deserialize("<white>" + plainDesc + "</white>"));
+                adventureLore.add(mm.deserialize("<italic:false><white>" + plainDesc + "</white>"));
                 meta.lore(adventureLore);
                 modified = true;
             }

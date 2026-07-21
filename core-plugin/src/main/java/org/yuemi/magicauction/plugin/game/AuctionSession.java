@@ -21,6 +21,8 @@ import org.yuemi.magicauction.plugin.config.ArenaConfig;
 import org.yuemi.magicauction.plugin.config.ItemConfig;
 import org.yuemi.magicauction.plugin.config.EventConfig;
 import org.yuemi.magicauction.plugin.config.EventRegistry;
+import org.yuemi.magicauction.plugin.config.GlassPaneMapper;
+import org.yuemi.magicauction.plugin.config.RarityColorMapper;
 import org.yuemi.magicauction.plugin.config.RarityRegistry;
 import org.yuemi.magicauction.plugin.config.TypeRegistry;
 import org.yuemi.magicauction.matchs.AuctionMatchEvaluator;
@@ -435,8 +437,7 @@ public final class AuctionSession {
         } else {
             Material material;
             if (sizeRevealed && rarityRevealed) {
-                var rarityInfo = RarityRegistry.get(state.getConfig().getRarity());
-                material = rarityInfo != null ? rarityInfo.getGlassPaneMaterial() : Material.BLACK_STAINED_GLASS_PANE;
+                material = GlassPaneMapper.getMaterial(state.getConfig().getRarity());
             } else {
                 material = Material.BLACK_STAINED_GLASS_PANE;
             }
@@ -448,9 +449,9 @@ public final class AuctionSession {
             var mm = MiniMessage.miniMessage();
             
             if (fullyRevealed) {
-                meta.displayName(mm.deserialize(state.getConfig().getDisplayName()));
+                meta.displayName(mm.deserialize("<italic:false>" + state.getConfig().getDisplayName()));
             } else {
-                meta.displayName(mm.deserialize("<red>???</red>"));
+                meta.displayName(mm.deserialize("<italic:false><red>???</red>"));
             }
 
             List<net.kyori.adventure.text.Component> lore = new ArrayList<>();
@@ -459,38 +460,38 @@ public final class AuctionSession {
             if (rarityRevealed) {
                 var rarityInfo = RarityRegistry.get(state.getConfig().getRarity());
                 if (rarityInfo != null) {
-                    lore.add(mm.deserialize("<gray>Rarity: <" + rarityInfo.getColor() + ">" + rarityInfo.getName() + "</" + rarityInfo.getColor() + "></gray>"));
+                    lore.add(mm.deserialize("<italic:false><gray>Rarity: </gray>" + RarityColorMapper.toTag(rarityInfo.getColor()) + rarityInfo.getName() + RarityColorMapper.toCloseTag(rarityInfo.getColor())));
                 } else {
-                    lore.add(mm.deserialize("<gray>Rarity: " + state.getConfig().getRarity() + "</gray>"));
+                    lore.add(mm.deserialize("<italic:false><gray>Rarity: " + state.getConfig().getRarity() + "</gray>"));
                 }
             } else {
-                lore.add(mm.deserialize("<gray>Rarity: <red>???</red></gray>"));
+                lore.add(mm.deserialize("<italic:false><gray>Rarity: <red>???</red></gray>"));
             }
 
             // Types (if revealed)
             if (typeRevealed) {
                 var typeInfo = TypeRegistry.get(state.getConfig().getType());
                 String typeName = typeInfo != null ? typeInfo.getName() : state.getConfig().getType();
-                lore.add(mm.deserialize("<gray>Type: <yellow>" + typeName + "</yellow></gray>"));
+                lore.add(mm.deserialize("<italic:false><gray>Type: <yellow>" + typeName + "</yellow></gray>"));
             } else {
-                lore.add(mm.deserialize("<gray>Type: <red>???</red></gray>"));
+                lore.add(mm.deserialize("<italic:false><gray>Type: <red>???</red></gray>"));
             }
 
             // Desc (if fully revealed)
             if (fullyRevealed && state.getConfig().getDesc() != null) {
-                lore.add(mm.deserialize("<gray>Desc: <white>" + state.getConfig().getDesc() + "</white></gray>"));
+                lore.add(mm.deserialize("<italic:false><gray>Desc: <white>" + state.getConfig().getDesc() + "</white></gray>"));
             }
 
             // Worth (if fully revealed)
             if (fullyRevealed) {
-                lore.add(mm.deserialize("<gray>Worth: <gold>$" + org.yuemi.libs.api.util.NumberUtils.formatSuffix(state.getConfig().getWorth()) + "</gold></gray>"));
+                lore.add(mm.deserialize("<italic:false><gray>Worth: <gold>$" + org.yuemi.libs.api.util.NumberUtils.formatSuffix(state.getConfig().getWorth()) + "</gold></gray>"));
             }
 
             // Size (if revealed)
             if (sizeRevealed) {
-                lore.add(mm.deserialize("<gray>Size: <yellow>" + state.getConfig().getWidth() + "x" + state.getConfig().getHeight() + "</yellow></gray>"));
+                lore.add(mm.deserialize("<italic:false><gray>Size: <yellow>" + state.getConfig().getWidth() + "x" + state.getConfig().getHeight() + "</yellow></gray>"));
             } else {
-                lore.add(mm.deserialize("<gray>Size: <red>???</red></gray>"));
+                lore.add(mm.deserialize("<italic:false><gray>Size: <red>???</red></gray>"));
             }
 
             var key = new org.bukkit.NamespacedKey(manager.getPlugin(), "auction_item_uid");
