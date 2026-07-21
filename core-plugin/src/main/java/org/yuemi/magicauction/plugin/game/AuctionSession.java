@@ -744,7 +744,7 @@ public final class AuctionSession {
         double binPrice = currentBasePrice * multiplier;
 
         currentGraphProgress = 0;
-        this.graphGui = buildGraphGui(binPrice);
+        this.graphGui = buildGraphGui();
         for (Player player : players) {
             if (manager.isBot(player)) continue;
             this.graphGui.open(player);
@@ -785,10 +785,8 @@ public final class AuctionSession {
 
     private void showGraphView() {
         closeRevealGui();
-        double multiplier = getMultiplier();
-        double binPrice = currentBasePrice * multiplier;
         currentGraphProgress = 0;
-        this.graphGui = buildGraphGui(binPrice);
+        this.graphGui = buildGraphGui();
         for (Player player : players) {
             if (manager.isBot(player)) continue;
             if (currentBids.containsKey(player.getUniqueId())) {
@@ -797,7 +795,7 @@ public final class AuctionSession {
         }
     }
 
-    private Gui buildGraphGui(double binPrice) {
+    private Gui buildGraphGui() {
         GuiApi guiApi = YueMiLibsProvider.getApi().getGui();
         var mm = MiniMessage.miniMessage();
 
@@ -853,10 +851,19 @@ public final class AuctionSession {
             double binThreshold = Math.max(secondHighestBid, currentBasePrice) * multiplier;
             boolean hasWinner = highestBid >= binThreshold;
 
+            // Dynamic bar sizing: find min and max bids across all players
+            double minBid = Double.MAX_VALUE;
+            double maxBid = Double.MIN_VALUE;
+            for (Player pl : players) {
+                double b = currentBids.getOrDefault(pl.getUniqueId(), 0.0);
+                if (b > maxBid) maxBid = b;
+                if (b < minBid) minBid = b;
+            }
+
             for (int i = 0; i < players.size(); i++) {
                 Player p = players.get(i);
                 double bid = currentBids.getOrDefault(p.getUniqueId(), 0.0);
-                
+
                 ItemStack skull = new ItemStack(Material.PLAYER_HEAD);
                 SkullMeta skullMeta = (SkullMeta) skull.getItemMeta();
                 if (skullMeta != null) {
@@ -876,13 +883,13 @@ public final class AuctionSession {
                 int row = i + 1;
                 layer.setItem(row * 9, skullGuiItem);
 
+                // Normalize bid to continuous bar height [1, 7] — lowest bid = 1, highest bid = 7
                 int length;
-                if (bid < 1.0) {
-                    length = 1;
-                } else if (bid >= binPrice) {
+                if (maxBid <= minBid) {
                     length = 7;
                 } else {
-                    length = 1 + (int) Math.round((bid / binPrice) * 6);
+                    double normalized = 1.0 + ((bid - minBid) / (maxBid - minBid)) * 6.0;
+                    length = (int) Math.round(normalized);
                     length = Math.max(1, Math.min(7, length));
                 }
 
