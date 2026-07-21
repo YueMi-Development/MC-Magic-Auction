@@ -418,11 +418,13 @@ public final class AuctionSession {
         } else {
             Material material;
             if (sizeRevealed && rarityRevealed) {
-                material = GlassPaneMapper.getMaterial(state.getConfig().getRarity());
+                String color = getRarityColor(state.getConfig().getRarity());
+                material = GlassPaneMapper.getMaterial(color);
             } else if (rarityRevealed) {
                 // Rarity known but size unknown — use a solid glass block (no pane)
                 // to convey color without implying the item's full shape
-                material = GlassPaneMapper.getBlockMaterial(state.getConfig().getRarity());
+                String color = getRarityColor(state.getConfig().getRarity());
+                material = GlassPaneMapper.getBlockMaterial(color);
             } else {
                 material = Material.BLACK_STAINED_GLASS_PANE;
             }
@@ -1239,7 +1241,8 @@ public final class AuctionSession {
                 final int finalI = i;
 
                 ItemStack flickerGlass = new ItemStack(
-                        GlassPaneMapper.getBlockMaterial(state.getConfig().getRarity()));
+                        GlassPaneMapper.getMaterial(
+                                getRarityColor(state.getConfig().getRarity())));
                 ItemMeta flickerMeta = flickerGlass.getItemMeta();
                 if (flickerMeta != null) {
                     flickerMeta.displayName(Component.text(" "));
@@ -1319,6 +1322,16 @@ public final class AuctionSession {
             return "yellow";
         }
         return "green";
+    }
+
+    /**
+     * Resolve a rarity ID to its configured color name for glass mapping.
+     * Falls back to the raw rarity ID if no RarityInfo is registered.
+     */
+    @NotNull
+    private static String getRarityColor(@NotNull String rarityId) {
+        var info = RarityRegistry.get(rarityId);
+        return info != null ? info.getColor() : rarityId;
     }
 
     @NotNull
