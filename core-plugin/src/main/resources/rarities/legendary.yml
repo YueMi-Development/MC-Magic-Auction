@@ -1,3 +1,5 @@
 name: "Legendary"
 description: "A legendary treasure!"
 color: "orange"
+reveal-sounds:
+  - "minecraft:entity.ender_dragon.growl"

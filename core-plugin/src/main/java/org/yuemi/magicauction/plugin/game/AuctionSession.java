@@ -1083,7 +1083,24 @@ public final class AuctionSession {
 
                     // Reveal sound when an item becomes visible
                     if (revealAnimationTick >= 4 && revealAnimationTick % 4 == 0) {
-                        player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0f, 1.0f);
+                        int itemIndex = revealAnimationTick / 4 - 1;
+                        if (itemIndex >= 0 && itemIndex < prizeStates.size()) {
+                            PrizeState ps = prizeStates.get(itemIndex);
+                            var rarityInfo = RarityRegistry.get(ps.getConfig().getRarity());
+                            List<String> revealSounds = rarityInfo != null ? rarityInfo.getRevealSounds() : null;
+                            if (revealSounds != null) {
+                                for (String soundName : revealSounds) {
+                                    var soundKey = org.bukkit.NamespacedKey.fromString(soundName.toLowerCase());
+                                    if (soundKey == null) continue;
+                                    Sound sound = org.bukkit.Registry.SOUND_EVENT.get(soundKey);
+                                    if (sound != null) {
+                                        player.playSound(player.getLocation(), sound, 1.0f, 1.0f);
+                                    }
+                                }
+                            } else {
+                                player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0f, 1.0f);
+                            }
+                        }
                     }
                 }
             }

@@ -8,6 +8,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public final class RarityRegistry {
@@ -18,12 +19,14 @@ public final class RarityRegistry {
         private final String description;
         private final String color;
         private final Material glassPaneMaterial;
+        private final List<String> revealSounds;
 
-        public RarityInfo(@NotNull String id, @NotNull String name, @NotNull String description, @NotNull String color) {
+        public RarityInfo(@NotNull String id, @NotNull String name, @NotNull String description, @NotNull String color, @Nullable List<String> revealSounds) {
             this.id = id.toLowerCase();
             this.name = name;
             this.description = description;
             this.color = color.toLowerCase();
+            this.revealSounds = revealSounds != null ? List.copyOf(revealSounds) : null;
 
             if ("black".equalsIgnoreCase(color)) {
                 throw new IllegalArgumentException("Rarity color cannot be 'black' as it is reserved for unknown/masked states!");
@@ -56,6 +59,11 @@ public final class RarityRegistry {
         public Material getGlassPaneMaterial() {
             return glassPaneMaterial;
         }
+
+        @Nullable
+        public List<String> getRevealSounds() {
+            return revealSounds;
+        }
     }
 
     private static final Map<String, RarityInfo> RARITIES = new HashMap<>();
@@ -73,7 +81,9 @@ public final class RarityRegistry {
             String name = config.getString("name", id);
             String desc = config.getString("description", "");
             String color = config.getString("color", "gray");
-            RARITIES.put(id.toLowerCase(), new RarityInfo(id, name, desc, color));
+            List<String> revealSounds = config.getStringList("reveal-sounds");
+            RARITIES.put(id.toLowerCase(), new RarityInfo(id, name, desc, color,
+                    revealSounds.isEmpty() ? null : revealSounds));
         }
     }
 

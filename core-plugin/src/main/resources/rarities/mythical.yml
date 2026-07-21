@@ -1,3 +1,6 @@
 name: "Mythical"
 description: "A mythical artifact of supreme power!"
 color: "red"
+reveal-sounds:
+  - "minecraft:entity.ender_dragon.growl"
+  - "minecraft:entity.ender_dragon.ambient"
