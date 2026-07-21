@@ -1,4 +1,4 @@
-package org.yuemi.magicauction.plugin.commands.subcommands;
+package org.yuemi.magicauction.plugin.commands.magicauction;
 
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;

@@ -1,4 +1,4 @@
-package org.yuemi.magicauction.plugin.commands.subcommands;
+package org.yuemi.magicauction.plugin.commands;
 
 import org.bukkit.command.CommandSender;
 import java.util.List;

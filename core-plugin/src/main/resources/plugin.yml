@@ -16,3 +16,7 @@ commands:
     description: "Main command for Magic Auction"
     permission: "magicauction.admin"
     usage: "/magicauction"
+  matchmaking:
+    description: "Join or leave an auction matchmaking queue"
+    permission: "magicauction.matchmaking"
+    usage: "/matchmaking <join|leave>"

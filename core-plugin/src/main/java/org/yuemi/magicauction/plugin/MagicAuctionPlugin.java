@@ -3,6 +3,8 @@ package org.yuemi.magicauction.plugin;
 import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.yuemi.magicauction.api.MagicAuctionApi;
+import org.yuemi.magicauction.matchmaking.MatchmakingService;
+import org.yuemi.magicauction.matchmaking.MatchmakingServiceImpl;
 import org.yuemi.magicauction.plugin.bstats.BStatsService;
 import org.yuemi.config.api.ConfigManager;
 import org.yuemi.magicauction.plugin.game.AuctionManager;
@@ -14,6 +16,7 @@ public final class MagicAuctionPlugin extends JavaPlugin {
     private static MagicAuctionPlugin instance;
     private MagicAuctionApi api;
     private AuctionManager auctionManager;
+    private MatchmakingService matchmakingService;
 
     public static MagicAuctionPlugin getInstance() {
         return instance;
@@ -40,6 +43,10 @@ public final class MagicAuctionPlugin extends JavaPlugin {
         // Register commands
         CommandRegistry.registerCommands(this, auctionManager);
 
+        // Initialize matchmaking service
+        this.matchmakingService = new MatchmakingServiceImpl(this, auctionManager::onMatchmakingQueueReady);
+        auctionManager.setMatchmakingService(matchmakingService);
+
         this.api = new MagicAuctionApiImpl();
 
         getServer().getServicesManager().register(
@@ -52,6 +59,9 @@ public final class MagicAuctionPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        if (matchmakingService != null) {
+            matchmakingService.shutdown();
+        }
         getServer().getServicesManager().unregister(MagicAuctionApi.class, api);
     }
 }

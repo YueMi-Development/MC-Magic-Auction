@@ -1,4 +1,4 @@
-package org.yuemi.magicauction.plugin.commands;
+package org.yuemi.magicauction.plugin.commands.magicauction;
 
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -6,8 +6,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.yuemi.magicauction.plugin.commands.subcommands.SubCommand;
-import org.yuemi.magicauction.plugin.commands.subcommands.StartSubCommand;
+import org.yuemi.magicauction.plugin.commands.SubCommand;
 import org.yuemi.magicauction.plugin.game.AuctionManager;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 
@@ -18,8 +17,8 @@ public final class MagicAuctionCommand implements CommandExecutor, TabCompleter 
     private final Map<String, SubCommand> subCommands = new HashMap<>();
 
     public MagicAuctionCommand(@NotNull AuctionManager auctionManager) {
-        // Register subcommands
         registerSubCommand(new StartSubCommand(auctionManager));
+        registerSubCommand(new MatchmakingSubCommand(auctionManager));
     }
 
     private void registerSubCommand(@NotNull SubCommand command) {
@@ -49,7 +48,6 @@ public final class MagicAuctionCommand implements CommandExecutor, TabCompleter 
             return true;
         }
 
-        // Strip the subcommand name from arguments list
         String[] subArgs = Arrays.copyOfRange(args, 1, args.length);
         sub.execute(sender, subArgs);
         return true;

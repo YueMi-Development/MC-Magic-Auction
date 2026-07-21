@@ -39,6 +39,7 @@ dependencies {
     implementation(project(":module-bot"))
     implementation(project(":module-matchs"))
     implementation(project(":module-seeders"))
+    implementation(project(":module-matchmaking"))
     compileOnly("io.papermc.paper:paper-api:$paperApiVersion")
     compileOnly("org.yuemi:YueMiLibs-api:$yuemiLibsApiVersion")
 

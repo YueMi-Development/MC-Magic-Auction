@@ -1,3 +1,24 @@
 # MagicAuction Configuration
 # Do not change the config-version value manually.
-config-version: 1
+config-version: 2
+
+# Matchmaking settings
+matchmaking:
+  # Whether the matchmaking system is enabled globally.
+  # When false, players cannot use /matchmaking join.
+  enabled: true
+
+  # Minimum number of real players required before a queue can start.
+  min-players: 4
+
+  # Seconds to wait for the queue to fill before taking action (see on-timeout).
+  timeout-seconds: 120
+
+  # Whether to fill remaining slots with bots when the timeout is reached.
+  # Only used when on-timeout is "fill_bots".
+  allow-bots: true
+
+  # What action to take when the queue timeout is reached without enough players.
+  # "fill_bots" — fill remaining slots with bots and start the auction
+  # "cancel"   — cancel the queue and notify waiting players
+  on-timeout: "fill_bots"

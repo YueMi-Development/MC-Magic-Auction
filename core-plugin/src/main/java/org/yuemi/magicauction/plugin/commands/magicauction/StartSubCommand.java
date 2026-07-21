@@ -1,9 +1,10 @@
-package org.yuemi.magicauction.plugin.commands.subcommands;
+package org.yuemi.magicauction.plugin.commands.magicauction;
 
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import org.yuemi.magicauction.plugin.commands.SubCommand;
 import org.yuemi.magicauction.plugin.config.ArenaConfig;
 import org.yuemi.magicauction.plugin.game.AuctionManager;
 import org.yuemi.magicauction.bot.BotHandler;
@@ -44,7 +45,6 @@ public final class StartSubCommand implements SubCommand {
     public void execute(CommandSender sender, String[] args) {
         var mm = MiniMessage.miniMessage();
 
-        // Needs at least 5 arguments: start <arena> <p1> <p2> <p3> <p4>
         if (args.length < 5) {
             sender.sendMessage(mm.deserialize("<red>Usage: " + getSyntax()));
             return;
@@ -61,14 +61,12 @@ public final class StartSubCommand implements SubCommand {
         List<String> playerNames = new ArrayList<>();
 
         if (args.length == 5) {
-            // No seed specified: start <arena> <p1> <p2> <p3> <p4>
             seed = -1;
             playerNames.add(args[1]);
             playerNames.add(args[2]);
             playerNames.add(args[3]);
             playerNames.add(args[4]);
         } else if (args.length >= 6) {
-            // Seed might be specified: start <arena> <seed> <p1> <p2> <p3> <p4>
             try {
                 seed = Long.parseLong(args[1]);
                 playerNames.add(args[2]);
@@ -76,18 +74,14 @@ public final class StartSubCommand implements SubCommand {
                 playerNames.add(args[4]);
                 playerNames.add(args[5]);
             } catch (NumberFormatException e) {
-                // Second argument is not a number, assume it's player 1: start <arena> <p1> <p2> <p3> <p4> <p5>?
-                // This means syntax error or too many arguments
                 sender.sendMessage(mm.deserialize("<red>Invalid seed or incorrect number of players! Seed must be an integer."));
                 sender.sendMessage(mm.deserialize("<red>Usage: " + getSyntax()));
                 return;
             }
         }
 
-        // Resolve seed: 0 → random, negative → absolute, positive → as-is
         seed = seedGenerator.resolve(seed);
 
-        // Resolve players
         List<Player> targetPlayers = new ArrayList<>();
         int botCount = 0;
         for (String name : playerNames) {
@@ -114,7 +108,6 @@ public final class StartSubCommand implements SubCommand {
             return;
         }
 
-        // Start session
         auctionManager.startSession(arena, seed, targetPlayers);
         sender.sendMessage(mm.deserialize("<green>Auction session started successfully with seed: <yellow>" + seed));
     }
@@ -122,7 +115,6 @@ public final class StartSubCommand implements SubCommand {
     @Override
     public List<String> tabComplete(CommandSender sender, String[] args) {
         if (args.length == 1) {
-            // Complete arena names
             List<String> completions = new ArrayList<>();
             for (ArenaConfig config : auctionManager.getArenas()) {
                 completions.add(config.getId());
@@ -130,7 +122,6 @@ public final class StartSubCommand implements SubCommand {
             return completions;
         }
         if (args.length >= 2) {
-            // Suggest online player names
             List<String> completions = new ArrayList<>();
             for (Player player : Bukkit.getOnlinePlayers()) {
                 completions.add(player.getName());
