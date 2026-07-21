@@ -660,8 +660,8 @@ public final class AuctionSession {
                         return;
                     }
 
-                    if (bid < 0) {
-                        player.sendMessage(MiniMessage.miniMessage().deserialize("<red>Bid cannot be negative! Use 0 to pass."));
+                    if (bid <= 0) {
+                        player.sendMessage(MiniMessage.miniMessage().deserialize("<red>Bid must be greater than 0!"));
                         Bukkit.getScheduler().runTaskLater(manager.getPlugin(), () -> openSinglePlayerBidding(player, binPrice), 3L);
                         return;
                     }
@@ -670,8 +670,8 @@ public final class AuctionSession {
                     var provider = econ.getActiveProvider();
                     if (provider != null) {
                         double balance = provider.getBalance(player);
-                        if (balance < bid) {
-                            player.sendMessage(MiniMessage.miniMessage().deserialize("<red>You cannot afford this bid! Balance: $" + org.yuemi.libs.api.util.NumberUtils.formatSuffix(balance)));
+                        if (bid > balance) {
+                            player.sendMessage(MiniMessage.miniMessage().deserialize("<red>Bid exceeds your balance! Balance: $" + org.yuemi.libs.api.util.NumberUtils.formatSuffix(balance)));
                             Bukkit.getScheduler().runTaskLater(manager.getPlugin(), () -> openSinglePlayerBidding(player, binPrice), 3L);
                             return;
                         }
