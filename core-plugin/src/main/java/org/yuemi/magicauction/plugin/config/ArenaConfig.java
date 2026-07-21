@@ -39,6 +39,7 @@ public final class ArenaConfig {
     private final List<String> events;
     private final int minItems;
     private final int maxItems;
+    private final int startEvents;
 
     public ArenaConfig(
             @NotNull String id,
@@ -50,7 +51,8 @@ public final class ArenaConfig {
             @NotNull List<PrizeEntry> rewards,
             @NotNull List<String> events,
             int minItems,
-            int maxItems
+            int maxItems,
+            int startEvents
     ) {
         this.id = id;
         this.name = name;
@@ -62,6 +64,7 @@ public final class ArenaConfig {
         this.events = List.copyOf(events);
         this.minItems = minItems;
         this.maxItems = maxItems;
+        this.startEvents = Math.max(0, startEvents);
     }
 
     @NotNull
@@ -109,6 +112,10 @@ public final class ArenaConfig {
         return maxItems;
     }
 
+    public int getStartEvents() {
+        return startEvents;
+    }
+
     @NotNull
     public static ArenaConfig load(@NotNull File file) {
         YamlConfiguration config = YamlConfiguration.loadConfiguration(file);
@@ -141,7 +148,8 @@ public final class ArenaConfig {
         int maxItems = config.getInt("max-items", -1);
         if (minItems == -1) minItems = totalRewardCount;
         if (maxItems == -1) maxItems = totalRewardCount;
+        int startEvents = config.getInt("start-events", 0);
 
-        return new ArenaConfig(id, name, thinkingTime, bidDuration, basePrice, multipliers, rewards, events, minItems, maxItems);
+        return new ArenaConfig(id, name, thinkingTime, bidDuration, basePrice, multipliers, rewards, events, minItems, maxItems, startEvents);
     }
 }

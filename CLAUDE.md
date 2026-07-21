@@ -91,6 +91,7 @@ Each arena file supports:
 | `rewards` | — | Prize pool for this arena |
 | `min-items` | sum of rewards | Minimum number of items to select for the session chest preview |
 | `max-items` | sum of rewards | Maximum number of items to select for the session chest preview |
+| `start-events` | 0 | Number of events to run at the start of Round 1 before the preview opens |
 | `events` | — | Shuffled round events config files (list length = round count) |
 
 ### Plugin Lifecycle

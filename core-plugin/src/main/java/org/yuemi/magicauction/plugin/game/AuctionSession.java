@@ -54,6 +54,7 @@ public final class AuctionSession {
     private final Map<ItemStack, ItemConfig> prizeConfigs = new HashMap<>(); // Maps custom items to configs
     private final List<PrizeState> prizeStates = new ArrayList<>();
     private final List<String> shuffledEvents = new ArrayList<>();
+    private final List<String> shuffledStartEvents = new ArrayList<>();
     private final Set<String> triggeredEvents = new HashSet<>();
 
     public AuctionSession(
@@ -72,6 +73,9 @@ public final class AuctionSession {
         
         this.shuffledEvents.addAll(arena.getEvents());
         Collections.shuffle(this.shuffledEvents, this.random);
+
+        this.shuffledStartEvents.addAll(arena.getEvents());
+        Collections.shuffle(this.shuffledStartEvents, new Random(seed));
         
         generatePrizesFromArena();
     }
@@ -163,7 +167,65 @@ public final class AuctionSession {
 
     public void start() {
         broadcast("<green>Auction starting for arena: <yellow>" + arena.getName() + "</yellow> (Seed: " + seed + ")!");
+        
+        int startEventsCount = arena.getStartEvents();
+        if (startEventsCount > 0) {
+            executeStartEvents(startEventsCount);
+        }
+        
         startPreviewState();
+    }
+
+    private void executeStartEvents(int count) {
+        int triggered = 0;
+        // First try configured events
+        for (String eventId : shuffledStartEvents) {
+            if (triggered >= count) break;
+
+            EventConfig event = EventRegistry.get(eventId);
+            if (event != null) {
+                boolean meetsMinRound = 1 >= event.getMinRounds();
+                boolean meetsOnlyOnce = !event.isOnlyOnce() || !triggeredEvents.contains(event.getId().toLowerCase());
+
+                if (meetsMinRound && meetsOnlyOnce) {
+                    triggeredEvents.add(event.getId().toLowerCase());
+                    executeEvent(event);
+                    triggered++;
+                }
+            }
+        }
+
+        // Fallback to any registered event in the EventRegistry that meets the minRound condition
+        if (triggered < count) {
+            List<EventConfig> allEvents = new ArrayList<>(EventRegistry.getEvents().values());
+            Collections.shuffle(allEvents, new Random(seed + 12345L));
+            for (EventConfig event : allEvents) {
+                if (triggered >= count) break;
+
+                boolean meetsMinRound = 1 >= event.getMinRounds();
+                boolean meetsOnlyOnce = !event.isOnlyOnce() || !triggeredEvents.contains(event.getId().toLowerCase());
+                if (meetsMinRound && meetsOnlyOnce) {
+                    triggeredEvents.add(event.getId().toLowerCase());
+                    executeEvent(event);
+                    triggered++;
+                }
+            }
+        }
+
+        // Last resort fallback (ignore onlyOnce)
+        if (triggered < count) {
+            List<EventConfig> allEvents = new ArrayList<>(EventRegistry.getEvents().values());
+            Collections.shuffle(allEvents, new Random(seed + 12345L));
+            for (EventConfig event : allEvents) {
+                if (triggered >= count) break;
+
+                if (1 >= event.getMinRounds()) {
+                    triggeredEvents.add(event.getId().toLowerCase());
+                    executeEvent(event);
+                    triggered++;
+                }
+            }
+        }
     }
 
     private EventConfig getRoundEvent() {
@@ -190,6 +252,24 @@ public final class AuctionSession {
             boolean meetsMinRound = currentRound >= fallback.getMinRounds();
             if (meetsOnlyOnce && meetsMinRound) {
                 return fallback;
+            }
+        }
+        
+        // Fallback to any registered event that meets minRound and onlyOnce
+        List<EventConfig> allEvents = new ArrayList<>(EventRegistry.getEvents().values());
+        Collections.shuffle(allEvents, this.random);
+        for (EventConfig event : allEvents) {
+            boolean meetsOnlyOnce = !event.isOnlyOnce() || !triggeredEvents.contains(event.getId().toLowerCase());
+            boolean meetsMinRound = currentRound >= event.getMinRounds();
+            if (meetsOnlyOnce && meetsMinRound) {
+                return event;
+            }
+        }
+        
+        // Last resort fallback: relax only-once constraint
+        for (EventConfig event : allEvents) {
+            if (currentRound >= event.getMinRounds()) {
+                return event;
             }
         }
         return null;
