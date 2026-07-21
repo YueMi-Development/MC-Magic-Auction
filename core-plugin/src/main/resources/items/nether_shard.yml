@@ -2,7 +2,7 @@ id: "nether_shard"
 rarity: "rare"
 type: "material"
 base-item: "minecraft:prismarine_shard"
-display-name: "<red>Nether Shard"
+display-name: "Nether Shard"
 desc: "A glowing fragment from the deep Nether."
 width: 1
 height: 1

@@ -197,7 +197,13 @@ public final class ItemConfig {
             boolean modified = false;
 
             if (hasDisplayNameOverride && displayName != null) {
-                meta.displayName(mm.deserialize(displayName));
+                String plainName = org.bukkit.ChatColor.stripColor(displayName);
+                var rarityInfo = RarityRegistry.get(rarity);
+                String coloredName = plainName;
+                if (rarityInfo != null) {
+                    coloredName = "<" + rarityInfo.getColor() + ">" + plainName + "</" + rarityInfo.getColor() + ">";
+                }
+                meta.displayName(mm.deserialize(coloredName));
                 modified = true;
             }
             if (hasDescOverride && desc != null) {

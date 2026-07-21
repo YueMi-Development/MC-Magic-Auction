@@ -2,7 +2,7 @@ id: "golden_ticket"
 rarity: "common"
 type: "consumable"
 base-item: "minecraft:paper"
-display-name: "<yellow>Golden Ticket"
+display-name: "Golden Ticket"
 desc: "Allows entering exclusive auctions!"
 width: 3
 height: 1

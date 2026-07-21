@@ -2,7 +2,7 @@ id: "diamond_block"
 rarity: "legendary"
 type: "collectible"
 base-item: "minecraft:diamond_block"
-display-name: "<aqua>Diamond Block"
+display-name: "Diamond Block"
 desc: "A solid block of pure diamond."
 width: 1
 height: 1

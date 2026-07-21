@@ -2,7 +2,7 @@ id: "mysterious_box"
 rarity: "super_rare"
 type: "collectible"
 base-item: "minecraft:chest"
-display-name: "<gold>Mysterious Box"
+display-name: "Mysterious Box"
 desc: "A mysterious container containing unknown treasure!"
 width: 2
 height: 2

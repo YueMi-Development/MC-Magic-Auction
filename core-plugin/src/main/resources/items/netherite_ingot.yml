@@ -2,7 +2,7 @@ id: "netherite_ingot"
 rarity: "mythical"
 type: "material"
 base-item: "minecraft:netherite_ingot"
-display-name: "<dark_gray>Netherite Ingot"
+display-name: "Netherite Ingot"
 desc: "A heavy ingot refined from ancient debris."
 width: 1
 height: 1
