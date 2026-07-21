@@ -1129,12 +1129,13 @@ public final class AuctionSession {
             }
         });
 
-        // Layer for black glass placeholders (priority 1)
+        // Layer for black glass placeholders (priority 1) — uses item width/height
         builder.createLayer("reveal_placeholders", 1, layer -> {
             for (int i = 0; i < generatedPrizes.size(); i++) {
                 PrizeState state = prizeStates.get(i);
                 int[] pos = state.getPosition();
-                int slot = pos[0] * 9 + pos[1];
+                int itemWidth = state.getConfig().getWidth();
+                int itemHeight = state.getConfig().getHeight();
 
                 ItemStack blackGlass = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
                 ItemMeta meta = blackGlass.getItemMeta();
@@ -1146,7 +1147,13 @@ public final class AuctionSession {
                         .item(blackGlass)
                         .onClick((p, ctx) -> ctx.getEvent().setCancelled(true))
                         .build();
-                layer.setItem(slot, paneGuiItem);
+
+                for (int row = 0; row < itemHeight; row++) {
+                    for (int col = 0; col < itemWidth; col++) {
+                        int slot = (pos[0] + row) * 9 + (pos[1] + col);
+                        layer.setItem(slot, paneGuiItem);
+                    }
+                }
             }
         });
 
