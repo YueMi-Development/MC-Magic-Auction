@@ -14,6 +14,7 @@ jobs:
         module:
           - module-seeders
           - module-matchs
+          - module-matchmaking
           - module-bot
           - core-plugin
     runs-on: ubuntu-latest
