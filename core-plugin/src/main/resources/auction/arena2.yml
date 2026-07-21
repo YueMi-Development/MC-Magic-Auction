@@ -3,6 +3,8 @@ name: "Infernal Deep Auction"
 thinking-time: 15
 bid-time: 30
 base-price: 250
+min-items: 5
+max-items: 10
 multipliers:
   - 3.0
   - 2.0

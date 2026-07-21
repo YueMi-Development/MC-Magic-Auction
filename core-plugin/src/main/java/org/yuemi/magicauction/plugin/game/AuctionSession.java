@@ -82,14 +82,32 @@ public final class AuctionSession {
             return;
         }
 
-        // Shuffle arena rewards pool deterministically
-        List<ArenaConfig.PrizeEntry> pool = new ArrayList<>(arena.getRewards());
+        // Split reward quantities to individual entries of amount 1 (dont stack same items)
+        List<ArenaConfig.PrizeEntry> pool = new ArrayList<>();
+        for (ArenaConfig.PrizeEntry entry : arena.getRewards()) {
+            for (int i = 0; i < entry.getAmount(); i++) {
+                pool.add(new ArenaConfig.PrizeEntry(entry.getItemId(), 1));
+            }
+        }
         Collections.shuffle(pool, random);
+
+        // Limit selected items count within min-items and max-items
+        int min = arena.getMinItems();
+        int max = arena.getMaxItems();
+        int targetCount;
+        if (min == max) {
+            targetCount = min;
+        } else {
+            targetCount = min + random.nextInt(max - min + 1);
+        }
+
+        int toSelect = Math.max(0, Math.min(targetCount, pool.size()));
+        List<ArenaConfig.PrizeEntry> selectedPrizes = new ArrayList<>(pool.subList(0, toSelect));
 
         // Pack items into 3x6 grid
         boolean[][] occupied = new boolean[3][6];
         
-        for (ArenaConfig.PrizeEntry entry : pool) {
+        for (ArenaConfig.PrizeEntry entry : selectedPrizes) {
             ItemStack stack = null;
             ItemConfig itemConfig = null;
             int width = 1;

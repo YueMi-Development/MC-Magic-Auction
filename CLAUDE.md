@@ -89,6 +89,9 @@ Each arena file supports:
 | `base-price` | 100 | Starting price floor for BIN calculation |
 | `multipliers` | — | Per-round overbid multipliers (list length = round count) |
 | `rewards` | — | Prize pool for this arena |
+| `min-items` | sum of rewards | Minimum number of items to select for the session chest preview |
+| `max-items` | sum of rewards | Maximum number of items to select for the session chest preview |
+| `events` | — | Shuffled round events config files (list length = round count) |
 
 ### Plugin Lifecycle
 

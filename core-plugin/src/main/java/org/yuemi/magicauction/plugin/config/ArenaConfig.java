@@ -37,6 +37,8 @@ public final class ArenaConfig {
     private final List<Double> multipliers;
     private final List<PrizeEntry> rewards;
     private final List<String> events;
+    private final int minItems;
+    private final int maxItems;
 
     public ArenaConfig(
             @NotNull String id,
@@ -46,7 +48,9 @@ public final class ArenaConfig {
             double basePrice,
             @NotNull List<Double> multipliers,
             @NotNull List<PrizeEntry> rewards,
-            @NotNull List<String> events
+            @NotNull List<String> events,
+            int minItems,
+            int maxItems
     ) {
         this.id = id;
         this.name = name;
@@ -56,6 +60,8 @@ public final class ArenaConfig {
         this.multipliers = multipliers.isEmpty() ? List.of(2.0, 1.5, 1.3, 1.1, 1.0) : multipliers;
         this.rewards = rewards;
         this.events = List.copyOf(events);
+        this.minItems = minItems;
+        this.maxItems = maxItems;
     }
 
     @NotNull
@@ -95,6 +101,14 @@ public final class ArenaConfig {
         return events;
     }
 
+    public int getMinItems() {
+        return minItems;
+    }
+
+    public int getMaxItems() {
+        return maxItems;
+    }
+
     @NotNull
     public static ArenaConfig load(@NotNull File file) {
         YamlConfiguration config = YamlConfiguration.loadConfiguration(file);
@@ -107,6 +121,7 @@ public final class ArenaConfig {
         List<PrizeEntry> rewards = new ArrayList<>();
 
         List<?> contentList = config.getList("rewards");
+        int totalRewardCount = 0;
         if (contentList != null) {
             for (Object obj : contentList) {
                 if (obj instanceof Map<?, ?> map) {
@@ -116,12 +131,17 @@ public final class ArenaConfig {
                         amount = ((Number) map.get("amount")).intValue();
                     }
                     rewards.add(new PrizeEntry(itemId, amount));
+                    totalRewardCount += amount;
                 }
             }
         }
 
         List<String> events = config.getStringList("events");
+        int minItems = config.getInt("min-items", -1);
+        int maxItems = config.getInt("max-items", -1);
+        if (minItems == -1) minItems = totalRewardCount;
+        if (maxItems == -1) maxItems = totalRewardCount;
 
-        return new ArenaConfig(id, name, thinkingTime, bidDuration, basePrice, multipliers, rewards, events);
+        return new ArenaConfig(id, name, thinkingTime, bidDuration, basePrice, multipliers, rewards, events, minItems, maxItems);
     }
 }
