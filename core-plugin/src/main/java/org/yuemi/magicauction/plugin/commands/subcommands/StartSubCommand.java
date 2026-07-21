@@ -7,19 +7,22 @@ import org.jetbrains.annotations.NotNull;
 import org.yuemi.magicauction.plugin.config.ArenaConfig;
 import org.yuemi.magicauction.plugin.game.AuctionManager;
 import org.yuemi.magicauction.bot.BotHandler;
+import org.yuemi.magicauction.seed.RandomSeedGenerator;
+import org.yuemi.magicauction.seed.SeedGenerator;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Random;
 
 public final class StartSubCommand implements SubCommand {
 
     private final AuctionManager auctionManager;
+    private final SeedGenerator seedGenerator;
 
     public StartSubCommand(@NotNull AuctionManager auctionManager) {
         this.auctionManager = auctionManager;
+        this.seedGenerator = new RandomSeedGenerator();
     }
 
     @Override
@@ -81,10 +84,8 @@ public final class StartSubCommand implements SubCommand {
             }
         }
 
-        // Validate and replace seed if <= 0
-        if (seed <= 0) {
-            seed = Math.abs(new Random().nextLong()) % 1_000_000_000L + 1;
-        }
+        // Resolve seed: 0 → random, negative → absolute, positive → as-is
+        seed = seedGenerator.resolve(seed);
 
         // Resolve players
         List<Player> targetPlayers = new ArrayList<>();

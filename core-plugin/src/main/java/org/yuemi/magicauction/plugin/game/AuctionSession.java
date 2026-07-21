@@ -23,6 +23,10 @@ import org.yuemi.magicauction.plugin.config.EventConfig;
 import org.yuemi.magicauction.plugin.config.EventRegistry;
 import org.yuemi.magicauction.plugin.config.RarityRegistry;
 import org.yuemi.magicauction.plugin.config.TypeRegistry;
+import org.yuemi.magicauction.matchs.AuctionMatchEvaluator;
+import org.yuemi.magicauction.matchs.model.Bid;
+import org.yuemi.magicauction.matchs.model.RoundContext;
+import org.yuemi.magicauction.matchs.model.RoundResult;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 
 import java.util.*;
@@ -887,104 +891,65 @@ public final class AuctionSession {
 
         double multiplier = getMultiplier();
 
-        // Find highest and second-highest bids in this round
-        double highestBid = -1;
-        double secondHighestBid = -1;
-        Player winner = null;
+        // Build input for the match evaluator
+        List<Bid> bidList = players.stream()
+                .map(p -> new Bid(p.getUniqueId(), currentBids.getOrDefault(p.getUniqueId(), 0.0)))
+                .toList();
 
-        // Find the highest bid value
-        double maxBid = -1;
-        for (Player p : players) {
-            double bid = currentBids.getOrDefault(p.getUniqueId(), 0.0);
-            if (bid > maxBid) {
-                maxBid = bid;
-            }
-        }
+        boolean hasMultiplierOne = arena.getMultipliers().stream()
+                .anyMatch(m -> Math.abs(m - 1.0) < 0.0001);
 
-        boolean isLastRound = currentRound >= arena.getMultipliers().size();
-        if (isLastRound) {
-            // Last round tie-breaker: find all players who bid exactly maxBid
-            List<Player> topBidders = new ArrayList<>();
-            for (Player p : players) {
-                double bid = currentBids.getOrDefault(p.getUniqueId(), 0.0);
-                if (bid == maxBid) {
-                    topBidders.add(p);
+        RoundContext context = new RoundContext(
+                bidList,
+                List.copyOf(bidOrder),
+                currentBasePrice,
+                multiplier,
+                currentRound,
+                arena.getMultipliers().size(),
+                hasMultiplierOne
+        );
+
+        RoundResult result = AuctionMatchEvaluator.evaluateRound(context);
+
+        switch (result.outcome()) {
+            case PLAYER_WON -> {
+                Player winner = Bukkit.getPlayer(result.winnerId());
+                if (winner == null) {
+                    broadcast("<red>Winner disconnected unexpectedly. Auction cancelled.");
+                    endSession();
+                    return;
                 }
-            }
-            if (topBidders.size() > 1) {
-                // Tie! Find the one who bid first among the top bidders
-                Player firstBidder = null;
-                int firstIndex = Integer.MAX_VALUE;
-                for (Player p : topBidders) {
-                    int idx = bidOrder.indexOf(p.getUniqueId());
-                    if (idx != -1 && idx < firstIndex) {
-                        firstIndex = idx;
-                        firstBidder = p;
-                    }
+
+                // Withdraw money from winner
+                EconomyApi econ = YueMiLibsProvider.getApi().getEconomy();
+                var provider = econ.getActiveProvider();
+                if (provider != null && !manager.isBot(winner)) {
+                    provider.withdraw(winner, result.highestBid());
                 }
-                winner = firstBidder;
-            } else if (!topBidders.isEmpty()) {
-                winner = topBidders.get(0);
+
+                broadcast("<gold><bold>WINNER!</bold> <yellow>" + winner.getName()
+                        + "</yellow> won the auction with a bid of <gold>$"
+                        + org.yuemi.libs.api.util.NumberUtils.formatSuffix(result.highestBid()) + "</gold>!");
+                startWinnerRevealAnimation(winner);
             }
-        } else {
-            // Standard highest bid
-            for (Player p : players) {
-                double bid = currentBids.getOrDefault(p.getUniqueId(), 0.0);
-                if (bid > highestBid) {
-                    winner = p;
-                    highestBid = bid;
-                }
-            }
-        }
-
-        if (winner != null) {
-            highestBid = currentBids.getOrDefault(winner.getUniqueId(), 0.0);
-            // Calculate second highest bid (excluding the winner)
-            for (Player p : players) {
-                if (p.equals(winner)) continue;
-                double bid = currentBids.getOrDefault(p.getUniqueId(), 0.0);
-                if (bid > secondHighestBid) {
-                    secondHighestBid = bid;
-                }
-            }
-        }
-
-        // BIN threshold = (highest other bid) × round multiplier
-        // If no other bids exist, use the arena base price as floor
-        double binThreshold = Math.max(secondHighestBid, currentBasePrice) * multiplier;
-
-        if (winner != null && highestBid >= binThreshold) {
-            EconomyApi econ = YueMiLibsProvider.getApi().getEconomy();
-            var provider = econ.getActiveProvider();
-            if (provider != null && !manager.isBot(winner)) {
-                provider.withdraw(winner, highestBid);
-            }
-
-            broadcast("<gold><bold>WINNER!</bold> <yellow>" + winner.getName() + "</yellow> won the auction with a bid of <gold>$" + org.yuemi.libs.api.util.NumberUtils.formatSuffix(highestBid) + "</gold>!");
-            startWinnerRevealAnimation(winner);
-        } else {
-            broadcast("<red>No players matched the required BIN price of <gold>$" + org.yuemi.libs.api.util.NumberUtils.formatSuffix(binThreshold) + "</gold> in round " + currentRound + ".");
-
-            if (currentRound < arena.getMultipliers().size()) {
+            case NO_WINNER_CONTINUE -> {
+                broadcast("<red>No players matched the required BIN price of <gold>$"
+                        + org.yuemi.libs.api.util.NumberUtils.formatSuffix(result.binThreshold())
+                        + "</gold> in round " + currentRound + ".");
                 currentRound++;
                 startPreviewState();
-            } else {
-                boolean hasMultiplierOne = false;
-                for (double m : arena.getMultipliers()) {
-                    if (Math.abs(m - 1.0) < 0.0001) {
-                        hasMultiplierOne = true;
-                        break;
-                    }
-                }
-                
-                if (!hasMultiplierOne && currentRound == arena.getMultipliers().size()) {
-                    broadcast("<light_purple><bold>BONUS ROUND!</bold></light_purple> <yellow>No winner yet and multiplier 1.0 is not configured. Starting a bonus round with multiplier 1.0!</yellow>");
-                    currentRound++;
-                    startPreviewState();
-                } else {
-                    broadcast("<red><bold>AUCTION OVER!</bold> No winner. Items have been locked away.");
-                    endSession();
-                }
+            }
+            case BONUS_ROUND_REQUIRED -> {
+                broadcast("<red>No players matched the required BIN price of <gold>$"
+                        + org.yuemi.libs.api.util.NumberUtils.formatSuffix(result.binThreshold())
+                        + "</gold> in round " + currentRound + ".");
+                broadcast("<light_purple><bold>BONUS ROUND!</bold></light_purple> <yellow>No winner yet and multiplier 1.0 is not configured. Starting a bonus round with multiplier 1.0!</yellow>");
+                currentRound++;
+                startPreviewState();
+            }
+            case AUCTION_ENDED -> {
+                broadcast("<red><bold>AUCTION OVER!</bold> No winner. Items have been locked away.");
+                endSession();
             }
         }
     }

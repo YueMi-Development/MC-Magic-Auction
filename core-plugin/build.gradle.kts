@@ -37,6 +37,8 @@ dependencies {
     implementation("org.yuemi:mc-config-libs:1.0.1")
     implementation(project(":core-api"))
     implementation(project(":module-bot"))
+    implementation(project(":module-matchs"))
+    implementation(project(":module-seeders"))
     compileOnly("io.papermc.paper:paper-api:$paperApiVersion")
     compileOnly("org.yuemi:YueMiLibs-api:$yuemiLibsApiVersion")
 }

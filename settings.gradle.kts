@@ -15,3 +15,5 @@ rootProject.name = "MC-Magic-Auction"
 include("core-api")
 include("core-plugin")
 include("module-bot")
+include("module-matchs")
+include("module-seeders")
