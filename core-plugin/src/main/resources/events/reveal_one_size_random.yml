@@ -1,0 +1,7 @@
+name: "Reveal One Random Item Size"
+desc: "Reveal size for 1 random item"
+only-once: true
+actions:
+  - type: "size"
+    selection: "random"
+    count: 1

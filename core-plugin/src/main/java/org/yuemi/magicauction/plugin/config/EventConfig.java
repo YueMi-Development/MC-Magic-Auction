@@ -55,17 +55,20 @@ public final class EventConfig {
     private final String id;
     private final String name;
     private final String desc;
+    private final boolean onlyOnce;
     private final List<ActionEntry> actions;
 
     public EventConfig(
             @NotNull String id,
             @NotNull String name,
             @NotNull String desc,
+            boolean onlyOnce,
             @NotNull List<ActionEntry> actions
     ) {
         this.id = id;
         this.name = name;
         this.desc = desc;
+        this.onlyOnce = onlyOnce;
         this.actions = List.copyOf(actions);
     }
 
@@ -82,6 +85,10 @@ public final class EventConfig {
     @NotNull
     public String getDesc() {
         return desc;
+    }
+
+    public boolean isOnlyOnce() {
+        return onlyOnce;
     }
 
     @NotNull

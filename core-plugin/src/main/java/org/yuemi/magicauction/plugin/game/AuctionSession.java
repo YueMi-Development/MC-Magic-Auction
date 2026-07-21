@@ -54,6 +54,7 @@ public final class AuctionSession {
     private final Map<ItemStack, ItemConfig> prizeConfigs = new HashMap<>(); // Maps custom items to configs
     private final List<PrizeState> prizeStates = new ArrayList<>();
     private final List<String> shuffledEvents = new ArrayList<>();
+    private final Set<String> triggeredEvents = new HashSet<>();
 
     public AuctionSession(
             @NotNull AuctionManager manager,
@@ -148,12 +149,28 @@ public final class AuctionSession {
     }
 
     private EventConfig getRoundEvent() {
-        if (currentRound - 1 < shuffledEvents.size()) {
-            String eventId = shuffledEvents.get(currentRound - 1);
-            return EventRegistry.get(eventId);
+        for (int i = currentRound - 1; i < shuffledEvents.size(); i++) {
+            String eventId = shuffledEvents.get(i);
+            EventConfig event = EventRegistry.get(eventId);
+            if (event != null) {
+                if (!event.isOnlyOnce() || !triggeredEvents.contains(event.getId().toLowerCase())) {
+                    if (i != currentRound - 1) {
+                        String temp = shuffledEvents.get(currentRound - 1);
+                        shuffledEvents.set(currentRound - 1, eventId);
+                        shuffledEvents.set(i, temp);
+                    }
+                    return event;
+                }
+            }
         }
         // Fallback to round_<N>
-        return EventRegistry.get("round_" + currentRound);
+        EventConfig fallback = EventRegistry.get("round_" + currentRound);
+        if (fallback != null) {
+            if (!fallback.isOnlyOnce() || !triggeredEvents.contains(fallback.getId().toLowerCase())) {
+                return fallback;
+            }
+        }
+        return null;
     }
 
     private void executeEvent(@NotNull EventConfig event) {
@@ -295,6 +312,7 @@ public final class AuctionSession {
         // Apply round event
         EventConfig event = getRoundEvent();
         if (event != null) {
+            triggeredEvents.add(event.getId().toLowerCase());
             executeEvent(event);
         }
 

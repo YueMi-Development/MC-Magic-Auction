@@ -1,0 +1,6 @@
+name: "Reveal One Random Item Type"
+desc: "Reveal type for 1 random item"
+actions:
+  - type: "type"
+    selection: "random"
+    count: 1

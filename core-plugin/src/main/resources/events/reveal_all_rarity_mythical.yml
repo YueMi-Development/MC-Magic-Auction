@@ -1,0 +1,8 @@
+name: "Reveal All Mythical Items"
+desc: "Reveal all items that have rarity mythical"
+only-once: true
+actions:
+  - type: "full"
+    selection: "all"
+    conditions:
+      rarity: "mythical"
