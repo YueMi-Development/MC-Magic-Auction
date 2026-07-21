@@ -45,7 +45,7 @@ public final class AuctionSession {
 
     private int currentRound = 1;
     private double currentBasePrice;
-    private int currentRevealStep = -1;
+    private int revealAnimationTick = -1;
     private int currentGraphProgress = 0;
     private boolean biddingActive = false;
     private Gui graphGui;
@@ -1019,9 +1019,17 @@ public final class AuctionSession {
     }
 
     private void startWinnerRevealAnimation(@NotNull Player winner) {
-        var mm = MiniMessage.miniMessage();
+        boolean revealEnabled = manager.getPlugin().getConfig().getBoolean("container.reveal.enabled", true);
+        boolean useAnimation = revealEnabled && manager.getPlugin().getConfig().getBoolean("container.reveal.animation", true);
 
-        currentRevealStep = -1;
+        if (!revealEnabled) {
+            // Reveal disabled — skip the GUI entirely and award immediately
+            awardPrizes(winner);
+            endSession();
+            return;
+        }
+
+        revealAnimationTick = -1;
         Gui revealGui = buildRevealGui();
         this.revealGui = revealGui;
         for (Player player : players) {
@@ -1029,92 +1037,17 @@ public final class AuctionSession {
             revealGui.open(player);
         }
 
-        activeTask = new BukkitRunnable() {
-            int step = 0;
+        long initialDelay = useAnimation ? 100L : 60L;
+        long period = useAnimation ? 3L : 15L;
 
+        activeTask = new BukkitRunnable() {
             @Override
             public void run() {
-                if (step >= generatedPrizes.size()) {
+                if (revealAnimationTick >= generatedPrizes.size() * 4) {
                     cancel();
-                    
-                    // Award prizes
-                    EconomyApi econ = YueMiLibsProvider.getApi().getEconomy();
-                    var provider = econ.getActiveProvider();
 
-                    boolean isBotWinner = manager.isBot(winner);
-                    long virtualCount = 0;
-                    long physicalCount = 0;
-                    double totalVirtualWorth = 0;
-                    double totalItemWorth = 0;
+                    awardPrizes(winner);
 
-                    for (PrizeState prizeState : prizeStates) {
-                        ItemStack stack = prizeState.getOriginalStack();
-                        ItemConfig config = prizeState.getConfig();
-                        if (config != null) {
-                            if (config.isVirtualItem()) {
-                                double itemWorth = config.getWorth() * stack.getAmount();
-                                totalVirtualWorth += itemWorth;
-                                virtualCount++;
-                                if (provider != null && !isBotWinner) {
-                                    provider.deposit(winner, itemWorth);
-                                }
-                            } else {
-                                totalItemWorth += config.getWorth() * stack.getAmount();
-                                physicalCount++;
-                                for (ItemConfig.RewardEntry reward : config.getRewards()) {
-                                    if ("command".equalsIgnoreCase(reward.getType()) && reward.getValue() != null) {
-                                        String processedCmd = reward.getValue().replace("%player%", winner.getName());
-                                        int runCount = stack.getAmount() * reward.getAmount();
-                                        for (int a = 0; a < runCount; a++) {
-                                            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), processedCmd);
-                                        }
-                                    } else if ("item".equalsIgnoreCase(reward.getType()) && reward.getItemId() != null && !isBotWinner) {
-                                        int totalAmount = reward.getAmount() * stack.getAmount();
-                                        ItemStack rewardStack = null;
-
-                                        // Resolve nested item from local items first
-                                        ItemConfig rewardLocalConfig = manager.getItemConfig(reward.getItemId());
-                                        if (rewardLocalConfig != null) {
-                                            rewardStack = rewardLocalConfig.createItemStack(totalAmount);
-                                        } else {
-                                            var libs = YueMiLibsProvider.getApi();
-                                            if (libs != null) {
-                                                try {
-                                                    ItemStack resolved = libs.getItems().getItem(reward.getItemId(), totalAmount);
-                                                    if (resolved != null) {
-                                                        rewardStack = resolved.clone();
-                                                    }
-                                                } catch (Exception ignored) {}
-                                            }
-                                        }
-
-                                        if (rewardStack != null) {
-                                            Map<Integer, ItemStack> leftover = winner.getInventory().addItem(rewardStack);
-                                            for (ItemStack leftoverItem : leftover.values()) {
-                                                winner.getWorld().dropItemNaturally(winner.getLocation(), leftoverItem);
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    if (!isBotWinner) {
-                        double totalWorth = totalVirtualWorth + totalItemWorth;
-                        StringBuilder rewardMsg = new StringBuilder("<green><bold>Rewards!</bold> <gray>Total worth: <gold>$" + org.yuemi.libs.api.util.NumberUtils.formatSuffix(totalWorth) + "</gold>");
-                        if (virtualCount > 0) {
-                            rewardMsg.append(" <gray>(<gold>$" + org.yuemi.libs.api.util.NumberUtils.formatSuffix(totalVirtualWorth) + "</gold> virtual</gray>");
-                            if (physicalCount > 0) {
-                                rewardMsg.append(" <gray>+ " + physicalCount + " item" + (physicalCount > 1 ? "s" : "") + "</gray>");
-                            }
-                            rewardMsg.append(")");
-                        } else if (physicalCount > 0) {
-                            rewardMsg.append(" <gray>(" + physicalCount + " item" + (physicalCount > 1 ? "s" : "") + ")</gray>");
-                        }
-                        winner.sendMessage(mm.deserialize(rewardMsg.toString()));
-                    }
-                    
                     activeTask = new BukkitRunnable() {
                         @Override
                         public void run() {
@@ -1125,17 +1058,120 @@ public final class AuctionSession {
                     return;
                 }
 
-                currentRevealStep = step;
+                if (useAnimation) {
+                    revealAnimationTick++;
+                } else {
+                    revealAnimationTick += 4;
+                }
+
                 for (Player player : players) {
                     if (manager.isBot(player)) continue;
                     revealGui.update(player);
-                    revealGui.updateTitle(player, "Auction Reveal (" + (step + 1) + "/" + generatedPrizes.size() + ")");
-                    player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0f, 1.0f);
-                }
 
-                step++;
+                    // Update counter when an item is fully revealed
+                    if (revealAnimationTick >= 4 && revealAnimationTick % 4 == 0) {
+                        int revealedNum = revealAnimationTick / 4;
+                        revealGui.updateTitle(player, "Auction Reveal (" + revealedNum + "/" + generatedPrizes.size() + ")");
+                    }
+
+                    if (useAnimation) {
+                        // Flicker tick on each color phase
+                        if (revealAnimationTick % 2 == 1) {
+                            player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_HAT, 0.5f, 1.5f);
+                        }
+                    }
+
+                    // Reveal sound when an item becomes visible
+                    if (revealAnimationTick >= 4 && revealAnimationTick % 4 == 0) {
+                        player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0f, 1.0f);
+                    }
+                }
             }
-        }.runTaskTimer(manager.getPlugin(), 100L, 15L);
+        }.runTaskTimer(manager.getPlugin(), initialDelay, period);
+    }
+
+    /**
+     * Award all prizes to the winner — virtual deposits, commands, and physical
+     * item drops. Sends the reward summary message to the winner.
+     */
+    private void awardPrizes(@NotNull Player winner) {
+        var mm = MiniMessage.miniMessage();
+        EconomyApi econ = YueMiLibsProvider.getApi().getEconomy();
+        var provider = econ.getActiveProvider();
+
+        boolean isBotWinner = manager.isBot(winner);
+        long virtualCount = 0;
+        long physicalCount = 0;
+        double totalVirtualWorth = 0;
+        double totalItemWorth = 0;
+
+        for (PrizeState prizeState : prizeStates) {
+            ItemStack stack = prizeState.getOriginalStack();
+            ItemConfig config = prizeState.getConfig();
+            if (config != null) {
+                if (config.isVirtualItem()) {
+                    double itemWorth = config.getWorth() * stack.getAmount();
+                    totalVirtualWorth += itemWorth;
+                    virtualCount++;
+                    if (provider != null && !isBotWinner) {
+                        provider.deposit(winner, itemWorth);
+                    }
+                } else {
+                    totalItemWorth += config.getWorth() * stack.getAmount();
+                    physicalCount++;
+                    for (ItemConfig.RewardEntry reward : config.getRewards()) {
+                        if ("command".equalsIgnoreCase(reward.getType()) && reward.getValue() != null) {
+                            String processedCmd = reward.getValue().replace("%player%", winner.getName());
+                            int runCount = stack.getAmount() * reward.getAmount();
+                            for (int a = 0; a < runCount; a++) {
+                                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), processedCmd);
+                            }
+                        } else if ("item".equalsIgnoreCase(reward.getType()) && reward.getItemId() != null && !isBotWinner) {
+                            int totalAmount = reward.getAmount() * stack.getAmount();
+                            ItemStack rewardStack = null;
+
+                            // Resolve nested item from local items first
+                            ItemConfig rewardLocalConfig = manager.getItemConfig(reward.getItemId());
+                            if (rewardLocalConfig != null) {
+                                rewardStack = rewardLocalConfig.createItemStack(totalAmount);
+                            } else {
+                                var libs = YueMiLibsProvider.getApi();
+                                if (libs != null) {
+                                    try {
+                                        ItemStack resolved = libs.getItems().getItem(reward.getItemId(), totalAmount);
+                                        if (resolved != null) {
+                                            rewardStack = resolved.clone();
+                                        }
+                                    } catch (Exception ignored) {}
+                                }
+                            }
+
+                            if (rewardStack != null) {
+                                Map<Integer, ItemStack> leftover = winner.getInventory().addItem(rewardStack);
+                                for (ItemStack leftoverItem : leftover.values()) {
+                                    winner.getWorld().dropItemNaturally(winner.getLocation(), leftoverItem);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if (!isBotWinner) {
+            double totalWorth = totalVirtualWorth + totalItemWorth;
+            StringBuilder rewardMsg = new StringBuilder("<green><bold>Rewards!</bold> <gray>Total worth: <gold>$" + org.yuemi.libs.api.util.NumberUtils.formatSuffix(totalWorth) + "</gold>");
+            if (virtualCount > 0) {
+                rewardMsg.append(" <gray>(<gold>$" + org.yuemi.libs.api.util.NumberUtils.formatSuffix(totalVirtualWorth) + "</gold> virtual</gray>");
+                if (physicalCount > 0) {
+                    rewardMsg.append(" <gray>+ " + physicalCount + " item" + (physicalCount > 1 ? "s" : "") + "</gray>");
+                }
+                rewardMsg.append(")");
+            } else if (physicalCount > 0) {
+                rewardMsg.append(" <gray>(" + physicalCount + " item" + (physicalCount > 1 ? "s" : "") + ")</gray>");
+            }
+            winner.sendMessage(mm.deserialize(rewardMsg.toString()));
+        }
     }
 
     private Gui buildRevealGui() {
@@ -1146,8 +1182,8 @@ public final class AuctionSession {
                 .rows(6)
                 .closePolicy(ClosePolicy.REOPEN);
 
-        // Layer for actual items (priority 2)
-        builder.createLayer("reveal_items", 2, layer -> {
+        // Layer for actual items (priority 3) — shown after flicker animation completes
+        builder.createLayer("reveal_items", 3, layer -> {
             for (int i = 0; i < generatedPrizes.size(); i++) {
                 PrizeState state = prizeStates.get(i);
                 int[] pos = state.getPosition();
@@ -1158,14 +1194,54 @@ public final class AuctionSession {
                 ItemStack prizeItem = buildContainerItemStack(state, true);
                 GuiItem prizeGuiItem = guiApi.createItemBuilder()
                         .item(prizeItem)
-                        .condition(player -> finalI <= currentRevealStep)
+                        .condition(player -> revealAnimationTick >= finalI * 4 + 4)
                         .onClick((p, ctx) -> ctx.getEvent().setCancelled(true))
                         .build();
                 layer.setItem(slot, prizeGuiItem);
             }
         });
 
-        // Layer for black glass placeholders (priority 1) — uses item width/height
+        // Layer for color flicker phase (priority 2) — shows during the two
+        // color sub-steps of each item's flicker animation (localTick 1 and 3)
+        builder.createLayer("reveal_flicker", 2, layer -> {
+            for (int i = 0; i < generatedPrizes.size(); i++) {
+                PrizeState state = prizeStates.get(i);
+                int[] pos = state.getPosition();
+                int itemWidth = state.getConfig().getWidth();
+                int itemHeight = state.getConfig().getHeight();
+
+                final int finalI = i;
+
+                ItemStack flickerGlass = new ItemStack(
+                        GlassPaneMapper.getBlockMaterial(state.getConfig().getRarity()));
+                ItemMeta flickerMeta = flickerGlass.getItemMeta();
+                if (flickerMeta != null) {
+                    flickerMeta.displayName(Component.text(" "));
+                    flickerMeta.lore(List.of(Component.text(" ")));
+                    flickerGlass.setItemMeta(flickerMeta);
+                }
+                GuiItem flickerGuiItem = guiApi.createItemBuilder()
+                        .item(flickerGlass)
+                        .condition(player -> {
+                            if (revealAnimationTick < 0) return false;
+                            int localTick = revealAnimationTick - finalI * 4;
+                            return localTick >= 1 && localTick < 4 && localTick % 2 == 1;
+                        })
+                        .onClick((p, ctx) -> ctx.getEvent().setCancelled(true))
+                        .build();
+
+                for (int row = 0; row < itemHeight; row++) {
+                    for (int col = 0; col < itemWidth; col++) {
+                        int slot = (pos[0] + row) * 9 + (pos[1] + col);
+                        layer.setItem(slot, flickerGuiItem);
+                    }
+                }
+            }
+        });
+
+        // Layer for black glass placeholders (priority 1) — covers every slot that
+        // hasn't been fully revealed yet (both waiting and black flicker phases).
+        // Items in their color flicker phase are overridden by the priority-2 layer.
         builder.createLayer("reveal_placeholders", 1, layer -> {
             for (int i = 0; i < generatedPrizes.size(); i++) {
                 PrizeState state = prizeStates.get(i);
@@ -1184,7 +1260,7 @@ public final class AuctionSession {
                 }
                 GuiItem paneGuiItem = guiApi.createItemBuilder()
                         .item(blackGlass)
-                        .condition(player -> finalI > currentRevealStep)
+                        .condition(player -> revealAnimationTick < finalI * 4 + 4)
                         .onClick((p, ctx) -> ctx.getEvent().setCancelled(true))
                         .build();
 

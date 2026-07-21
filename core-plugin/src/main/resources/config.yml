@@ -1,6 +1,6 @@
 # MagicAuction Configuration
 # Do not change the config-version value manually.
-config-version: 2
+config-version: 3
 
 # Matchmaking settings
 matchmaking:
@@ -22,3 +22,14 @@ matchmaking:
   # "fill_bots" — fill remaining slots with bots and start the auction
   # "cancel"   — cancel the queue and notify waiting players
   on-timeout: "fill_bots"
+
+# Container preview & reveal settings
+container:
+  reveal:
+    # Whether the container reveal system is enabled globally.
+    # When false, the winner reveal animation is skipped entirely.
+    enabled: true
+
+    # Whether to play the flicker animation during item reveals.
+    # When false, items reveal one-by-one without the flicker effect.
+    animation: true
