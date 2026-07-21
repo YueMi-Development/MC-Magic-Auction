@@ -1273,12 +1273,49 @@ public final class AuctionSession {
             endSession();
         } else {
             broadcast("<gray>" + disconnectedPlayer.getName() + " disconnected. Skipping their bids for the rest of the auction.");
-            if (biddingActive && !currentBids.containsKey(disconnectedPlayer.getUniqueId())) {
-                currentBids.put(disconnectedPlayer.getUniqueId(), 1.0);
-                bidOrder.add(disconnectedPlayer.getUniqueId());
-                if (currentBids.size() >= players.size()) {
-                    startGraphicsState();
-                }
+            skipPlayerBid(disconnectedPlayer);
+        }
+    }
+
+    /**
+     * Handle a player's in-game death during an auction.
+     * <p>
+     * The player remains online (unlike disconnect), so the auction continues
+     * with other players. Their current bid is forced to $1.0 if the bidding
+     * phase is active and they haven't bid yet, and their open GUI inventory
+     * is closed so the death screen displays correctly.
+     *
+     * @param deadPlayer the player who died
+     */
+    public void handlePlayerDeath(@NotNull Player deadPlayer) {
+        broadcast("<gray>" + deadPlayer.getName() + " died. Skipping their bids.");
+
+        // Set GUI close policies to CLOSE so the reopen handler does not
+        // fight with the death screen when we close the inventory.
+        if (previewGui != null) {
+            previewGui.setClosePolicy(ClosePolicy.CLOSE);
+        }
+        if (graphGui != null) {
+            graphGui.setClosePolicy(ClosePolicy.CLOSE);
+        }
+        if (revealGui != null) {
+            revealGui.setClosePolicy(ClosePolicy.CLOSE);
+        }
+
+        skipPlayerBid(deadPlayer);
+        deadPlayer.closeInventory();
+    }
+
+    /**
+     * Force the player's bid to $1.0 if the bidding phase is active
+     * and they have not yet submitted a bid.
+     */
+    private void skipPlayerBid(@NotNull Player player) {
+        if (biddingActive && !currentBids.containsKey(player.getUniqueId())) {
+            currentBids.put(player.getUniqueId(), 1.0);
+            bidOrder.add(player.getUniqueId());
+            if (currentBids.size() >= players.size()) {
+                startGraphicsState();
             }
         }
     }

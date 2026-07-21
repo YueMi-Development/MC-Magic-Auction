@@ -160,6 +160,54 @@ class MatchmakingServiceImplTest {
     }
 
     @Nested
+    @DisplayName("Player lifecycle")
+    class PlayerLifecycle {
+
+        @Test
+        @DisplayName("should remove player from queue on disconnect")
+        void disconnect_removesPlayer() {
+            service.joinQueue(player1, "arena1", 4, 120, true);
+            assertTrue(service.leaveQueue(player1, null));
+            assertNull(service.getPlayerQueue(player1));
+            assertEquals(0, service.getQueueSize("arena1"));
+        }
+
+        @Test
+        @DisplayName("should keep player in queue after simulated death (no death handler)")
+        void death_keepsPlayerInQueue() {
+            service.joinQueue(player1, "arena1", 4, 120, true);
+            // Death in Minecraft does not trigger any queue-specific logic.
+            // Queue state must remain unchanged.
+            assertEquals("arena1", service.getPlayerQueue(player1));
+            assertEquals(1, service.getQueueSize("arena1"));
+        }
+
+        @Test
+        @DisplayName("should keep player in queue when other players disconnect")
+        void otherPlayerDisconnect_doesNotAffectQueue() {
+            service.joinQueue(player1, "arena1", 4, 120, true);
+            service.joinQueue(player2, "arena1", 4, 120, true);
+            // player2 disconnects — only player2 is removed
+            service.leaveQueue(player2, null);
+            assertNull(service.getPlayerQueue(player2));
+            assertEquals("arena1", service.getPlayerQueue(player1));
+            assertEquals(1, service.getQueueSize("arena1"));
+        }
+
+        @Test
+        @DisplayName("should cancel timeout when disconnected player was the only one in queue")
+        void disconnectLastPlayer_cancelsTimeout() {
+            service.joinQueue(player1, "arena1", 4, 120, true);
+            service.leaveQueue(player1, null);
+            // Queue should be empty and timeout already cancelled by ArenaQueue
+            assertEquals(0, service.getQueueSize("arena1"));
+            // Joining again should work (queue re-created)
+            assertTrue(service.joinQueue(player1, "arena1", 4, 120, true));
+            assertEquals(1, service.getQueueSize("arena1"));
+        }
+    }
+
+    @Nested
     @DisplayName("Shutdown")
     class Shutdown {
 

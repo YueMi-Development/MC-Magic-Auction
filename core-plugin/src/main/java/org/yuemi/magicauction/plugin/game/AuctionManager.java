@@ -79,6 +79,18 @@ public final class AuctionManager {
                     }
                 }
             }
+
+            @org.bukkit.event.EventHandler
+            public void onPlayerDeath(org.bukkit.event.entity.PlayerDeathEvent event) {
+                Player player = event.getPlayer();
+                // Handle active auction death — skip player and close GUI
+                for (AuctionSession session : new ArrayList<>(activeSessions)) {
+                    if (session.getPlayers().contains(player)) {
+                        session.handlePlayerDeath(player);
+                    }
+                }
+                // Matchmaking queue is unaffected by death — player stays queued
+            }
         }, plugin);
     }
 
