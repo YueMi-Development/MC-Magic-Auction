@@ -92,6 +92,20 @@ Each arena file supports:
 | `start-events` | 0 | Number of events to run at the start of Round 1 before the preview opens |
 | `events` | — | Shuffled round events config files (list length = round count) |
 
+### Plugin Config (`config.yml`)
+
+| Field | Default | Description |
+|-------|---------|-------------|
+| `matchmaking.enabled` | true | Whether matchmaking is enabled |
+| `matchmaking.min-players` | 4 | Minimum real players to start a queue |
+| `matchmaking.timeout-seconds` | 120 | Queue timeout before fill/cancel action |
+| `matchmaking.allow-bots` | true | Whether bots fill remaining slots on timeout |
+| `matchmaking.on-timeout` | fill_bots | Action on timeout: `fill_bots` or `cancel` |
+| `container.preview.placeholder_pane` | IRON_BARS | Material for full-size placeholders when size is known but nothing else is revealed |
+| `container.preview.placeholder_block` | GLASS | Material for 1x1 placeholders when rarity is known but size is unknown |
+| `container.reveal.enabled` | true | Winner reveal animation enabled |
+| `container.reveal.animation` | true | Flicker effect during reveal (false = simple step reveal) |
+
 ### Plugin Lifecycle
 
 - **onEnable:** Initializes config, copies default resources for `auction/` and `items/`, starts `AuctionManager`, registers commands via `CommandRegistry`, and exposes `MagicAuctionApi` service.
@@ -101,11 +115,11 @@ Each arena file supports:
 
 - **3x6 Grid Packing**: Inside the 6x9 chest preview GUI, items are packed in a 3x6 container offset (starts Row 1, Column 1) starting from the top-left available position. Items specify width and height and cannot overlap or exceed boundaries.
 - **Seed System**: When starting an auction, an optional seed can be passed. If it is `<= 0` (including `-1` or other negative values) or omitted, a random positive seed is generated. Shuffling and packing of prizes is governed by a `java.util.Random` initialized with this seed to guarantee deterministic layout reproduction.
-- **Round Events & Container Masking**: The bidding preview container is masked using stained glass panes. From the beginning of the round, all items are rendered inside the preview chest. By default, unrevealed items start in a **hide state** (rendering as a 1x1 black stained glass pane named `<red>???</red>` with placeholders `???` in lore). Once any property (rarity, size, or type) is revealed, the hide state is disabled, rendering the item as a partially-revealed shape. If size is revealed, it renders using the item's full width and height; if rarity is also revealed, it uses the rarity-colored glass pane.
+- **Round Events & Container Masking**: The bidding preview container is masked using stained glass panes. From the beginning of the round, all items are rendered inside the preview chest. By default, unrevealed items start in a **hide state** (not rendered in preview). Once any property (rarity, size, or type) is revealed, the hide state is disabled, rendering the item as a partially-revealed shape. If size is revealed, it renders using the item's full width and height using the configured `placeholder_pane` material (default iron bars); if rarity is also revealed, it uses the rarity-colored glass pane. If only rarity is known, it renders as a 1x1 using the configured `placeholder_block` material (default glass).
 - **Unique NBT Identifiers**: Every container item in the session is assigned a unique `java.util.UUID` stored in `PrizeState`. Rendered item stacks in preview and reveal GUIs are tagged with this UUID via NBT (`auction_item_uid`), ensuring duplicate items (e.g. multiple Diamond Blocks) are treated as distinct instances without slot or click conflicts.
-- **Winner Reveal Animation**: Runs when a winner is decided. Opens the reveal GUI showing all items as black stained glass panes (blank display name) and remains in this initial state for a **5-second delay** (100 ticks). Afterward, items are revealed one-by-one in-place to their actual fully-revealed icons. This is powered by two conditional GUI layers: `reveal_items` (priority 2, condition `finalI <= currentRevealStep`) and `reveal_placeholders` (priority 1, no condition).
+- **Winner Reveal Animation**: Runs when a winner is decided. Opens the reveal GUI showing all items as black stained glass panes (blank display name) and remains in this initial state for a **5-second delay** (100 ticks). Afterward, items are revealed one-by-one with a **flicker effect**: each item cycles black → rarity-colored glass pane → black → rarity-colored glass pane before showing the real item. The effect uses three conditional GUI layers: `reveal_items` (priority 3), `reveal_flicker` (priority 2), and `reveal_placeholders` (priority 1). Sound events per rarity can be configured via `reveal-sounds` in rarity YAML files (e.g. dragon growls for mythic/legendary). Configurable via `container.reveal.enabled` and `container.reveal.animation`. The GUI can be closed early with ESC to skip to prize awarding.
 - **Events Configuration & Reproducibility**: The events list declared in the arena config is shuffled deterministically at session start using the session's random generator. Each round executes one event from this shuffled sequence (with fallback to `events/round_<N>.yml` based on round index). Event files must include `name` and `desc` fields, followed by an `actions` list (e.g. `type: "type"|"rarity"|"size"|"full"`, `selection: "random"|"all"`, `count: N`, and optional `conditions: {rarity: String, min-total-size: Int}`). To ensure deterministic and reproducible reveals, bot bidding simulation uses an isolated random generator (`botRandom`), leaving the primary session `Random` instance strictly dedicated to layout generation, event list shuffling, and event reveals.
-- **Rarity Validation**: Rarity configuration files cannot use the color `black` as a valid color value to avoid collisions with the unknown/masked container states.
+- **Rarity Validation**: Rarity configuration files support all color values including `black`.
 - **Base Item Resolution & Overrides**: Every custom item config defined under `items/` must specify a `base-item` resolved dynamically via YueMiLibs. Name, standard white `desc` (plain-text description), and custom model data overrides are conditionally applied to the base item stack.
 - **Prizes & Rewards Resolution**: Arena rewards and container items are resolved strictly from the local `items/` directory configuration first.
 - **Strict Reward Distribution**: Container item stacks are never given physically to the winning player.
