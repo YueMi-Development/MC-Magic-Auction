@@ -57,6 +57,7 @@ public final class AuctionSession {
     
     private BukkitTask activeTask;
     private BukkitTask bidCountdownTask;
+    private BukkitTask previewCountdownTask;
     private Gui previewGui;
     private final List<ItemStack> generatedPrizes = new ArrayList<>();
     private final List<PrizeState> prizeStates = new ArrayList<>();
@@ -483,6 +484,7 @@ public final class AuctionSession {
 
     private void startPreviewState() {
         cancelActiveTask();
+        cancelPreviewCountdownTask();
         currentBids.clear();
         bidOrder.clear();
 
@@ -493,30 +495,40 @@ public final class AuctionSession {
             executeEvent(event);
         }
 
-        broadcast("<yellow>Round " + currentRound + " started!");
+        broadcast("<yellow>" + arena.getName() + " — Round " + currentRound + " started!");
 
+        int thinkingTime = arena.getThinkingTime();
         this.previewGui = buildPreviewGui();
         for (Player player : players) {
             if (manager.isBot(player)) continue;
             previewGui.open(player);
         }
 
+        // Action bar countdown for preview phase
+        previewCountdownTask = startCountdown(thinkingTime, secondsLeft -> {
+            String color = getTimeColor(secondsLeft, thinkingTime);
+            for (Player player : players) {
+                if (manager.isBot(player)) continue;
+                player.sendActionBar(MiniMessage.miniMessage().deserialize(
+                        "<" + color + ">" + secondsLeft + "s left</" + color + ">"));
+            }
+        });
+
         activeTask = new BukkitRunnable() {
-            int timeLeft = 15;
+            int timeLeft = thinkingTime;
 
             @Override
             public void run() {
                 if (timeLeft <= 0) {
                     closePreviewGui();
+                    cancelPreviewCountdownTask();
                     startBiddingState();
                     return;
                 }
 
                 for (Player player : players) {
                     if (manager.isBot(player)) continue;
-                    if (previewGui != null) {
-                        previewGui.updateTitle(player, getRoundTitle(" | Time: " + timeLeft + "s"));
-                    }
+                    // Time shown via action bar — no GUI title update needed
                 }
 
                 timeLeft--;
@@ -528,7 +540,7 @@ public final class AuctionSession {
         GuiApi guiApi = YueMiLibsProvider.getApi().getGui();
         
         var builder = guiApi.createBuilder()
-                .title(getRoundTitle(" | Time: " + arena.getThinkingTime() + "s"))
+                .title(getRoundTitle(""))
                 .rows(6)
                 .closePolicy(ClosePolicy.REOPEN);
 
@@ -583,6 +595,7 @@ public final class AuctionSession {
     private void startBiddingState() {
         cancelActiveTask();
         cancelBidCountdownTask();
+        cancelPreviewCountdownTask();
         biddingActive = true;
         // Bidding phase begins — players see the anvil GUI
 
@@ -591,24 +604,15 @@ public final class AuctionSession {
         int totalSeconds = arena.getBidDuration();
 
         // Start action bar countdown
-        bidCountdownTask = new BukkitRunnable() {
-            int secondsLeft = totalSeconds;
-            @Override
-            public void run() {
-                if (secondsLeft <= 0) {
-                    this.cancel();
-                    return;
-                }
-                for (Player player : players) {
-                    if (manager.isBot(player)) continue;
-                    if (currentBids.containsKey(player.getUniqueId())) continue;
-                    player.sendActionBar(MiniMessage.miniMessage().deserialize(
-                            "<gold>" + secondsLeft + "s</gold> <gray>|</gray> <yellow>$"
-                            + org.yuemi.libs.api.util.NumberUtils.formatSuffix(binPrice) + " BIN"));
-                }
-                secondsLeft--;
+        bidCountdownTask = startCountdown(totalSeconds, secondsLeft -> {
+            String color = getTimeColor(secondsLeft, totalSeconds);
+            for (Player player : players) {
+                if (manager.isBot(player)) continue;
+                if (currentBids.containsKey(player.getUniqueId())) continue;
+                player.sendActionBar(MiniMessage.miniMessage().deserialize(
+                        "<" + color + ">" + secondsLeft + "s left</" + color + ">"));
             }
-        }.runTaskTimer(manager.getPlugin(), 0L, 20L);
+        });
 
         for (Player player : players) {
             if (manager.isBot(player)) {
@@ -798,8 +802,8 @@ public final class AuctionSession {
         var mm = MiniMessage.miniMessage();
 
         double graphMultiplier = getMultiplier();
-        String roundLabel = currentRound > arena.getMultipliers().size() ? "\u00A7lBONUS" : "Round " + currentRound;
-        String graphTitle = "Bidding Progress (" + roundLabel + ", " + String.format("%.1f", graphMultiplier) + "x)";
+        String multColor = getMultiplierColor(graphMultiplier);
+        String graphTitle = "Bidding Progress (" + multColor + String.format("%.1f", graphMultiplier) + "x§r)";
         var builder = guiApi.createBuilder()
                 .title(graphTitle)
                 .rows(6)
@@ -1190,6 +1194,41 @@ public final class AuctionSession {
         return builder.build();
     }
 
+    @NotNull
+    private static String getMultiplierColor(double multiplier) {
+        if (multiplier >= 8.0) return "§c"; // red
+        if (multiplier >= 6.0) return "§6"; // gold
+        if (multiplier >= 3.0) return "§e"; // yellow
+        return "§a"; // green
+    }
+
+    @NotNull
+    private static String getTimeColor(int secondsLeft, int totalSeconds) {
+        double pct = (double) secondsLeft / totalSeconds;
+        if (pct <= 0.20) {
+            return "red";
+        } else if (pct <= 0.60) {
+            return "yellow";
+        }
+        return "green";
+    }
+
+    @NotNull
+    private BukkitTask startCountdown(int totalSeconds, @NotNull java.util.function.Consumer<Integer> onTick) {
+        return new BukkitRunnable() {
+            int secondsLeft = totalSeconds;
+            @Override
+            public void run() {
+                if (secondsLeft <= 0) {
+                    this.cancel();
+                    return;
+                }
+                onTick.accept(secondsLeft);
+                secondsLeft--;
+            }
+        }.runTaskTimer(manager.getPlugin(), 0L, 20L);
+    }
+
     private double getMultiplier() {
         double mult = 1.0;
         if (currentRound - 1 < arena.getMultipliers().size()) {
@@ -1200,10 +1239,11 @@ public final class AuctionSession {
 
     private String getRoundTitle(String suffix) {
         boolean isBonus = currentRound > arena.getMultipliers().size();
+        String name = arena.getName().replaceAll("(?i)\\s+Arena$", "");
         if (isBonus) {
-            return "\u00A7lBONUS" + suffix;
+            return name + " \u00A7lBONUS" + suffix;
         } else {
-            return "Round " + currentRound + "/" + arena.getMultipliers().size() + suffix;
+            return name + " (" + currentRound + "/" + arena.getMultipliers().size() + ")" + suffix;
         }
     }
 
@@ -1225,6 +1265,13 @@ public final class AuctionSession {
         if (bidCountdownTask != null) {
             bidCountdownTask.cancel();
             bidCountdownTask = null;
+        }
+    }
+
+    private void cancelPreviewCountdownTask() {
+        if (previewCountdownTask != null) {
+            previewCountdownTask.cancel();
+            previewCountdownTask = null;
         }
     }
 
@@ -1280,6 +1327,7 @@ public final class AuctionSession {
     private void endSession() {
         cancelActiveTask();
         cancelBidCountdownTask();
+        cancelPreviewCountdownTask();
         closePreviewGui();
         closeGraphGui();
         closeRevealGui();
