@@ -49,6 +49,7 @@ public final class AuctionSession {
     private final List<UUID> bidOrder = new ArrayList<>();
     
     private BukkitTask activeTask;
+    private Gui previewGui;
     private final List<ItemStack> generatedPrizes = new ArrayList<>();
     private final List<PrizeState> prizeStates = new ArrayList<>();
     private final List<String> shuffledEvents = new ArrayList<>();
@@ -478,10 +479,10 @@ public final class AuctionSession {
         broadcast("<gray>BIN (Buy It Now) Price: <gold>$" + org.yuemi.libs.api.util.NumberUtils.formatSuffix(binPrice) + "</gold>");
         broadcast("<gray>------------------------------------");
 
-        Gui gui = buildPreviewGui();
+        this.previewGui = buildPreviewGui();
         for (Player player : players) {
             if (manager.isBot(player)) continue;
-            gui.open(player);
+            previewGui.open(player);
         }
 
         activeTask = new BukkitRunnable() {
@@ -490,18 +491,16 @@ public final class AuctionSession {
             @Override
             public void run() {
                 if (timeLeft <= 0) {
-                    gui.setClosePolicy(ClosePolicy.CLOSE);
-                    for (Player player : players) {
-                        if (manager.isBot(player)) continue;
-                        player.closeInventory();
-                    }
+                    closePreviewGui();
                     startBiddingState();
                     return;
                 }
 
                 for (Player player : players) {
                     if (manager.isBot(player)) continue;
-                    gui.updateTitle(player, getRoundTitle(" | Time: " + timeLeft + "s"));
+                    if (previewGui != null) {
+                        previewGui.updateTitle(player, getRoundTitle(" | Time: " + timeLeft + "s"));
+                    }
                 }
 
                 timeLeft--;
@@ -1174,6 +1173,17 @@ public final class AuctionSession {
         }
     }
 
+    private void closePreviewGui() {
+        if (previewGui != null) {
+            previewGui.setClosePolicy(ClosePolicy.CLOSE);
+            for (Player player : players) {
+                if (manager.isBot(player)) continue;
+                player.closeInventory();
+            }
+            previewGui = null;
+        }
+    }
+
     private void closeGraphGui() {
         if (graphGui != null) {
             graphGui.setClosePolicy(ClosePolicy.CLOSE);
@@ -1214,7 +1224,9 @@ public final class AuctionSession {
 
     private void endSession() {
         cancelActiveTask();
+        closePreviewGui();
         closeGraphGui();
+        closeRevealGui();
         for (Player player : players) {
             if (manager.isBot(player)) continue;
             player.closeInventory();
