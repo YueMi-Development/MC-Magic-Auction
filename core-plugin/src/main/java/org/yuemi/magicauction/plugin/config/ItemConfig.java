@@ -208,7 +208,9 @@ public final class ItemConfig {
             }
             if (hasDescOverride && desc != null) {
                 List<net.kyori.adventure.text.Component> adventureLore = new ArrayList<>();
-                adventureLore.add(mm.deserialize("<white>" + desc + "</white>"));
+                // Force white color for description
+                String plainDesc = org.bukkit.ChatColor.stripColor(desc);
+                adventureLore.add(mm.deserialize("<white>" + plainDesc + "</white>"));
                 meta.lore(adventureLore);
                 modified = true;
             }
