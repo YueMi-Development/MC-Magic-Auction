@@ -1,0 +1,14 @@
+id: magma_cream_hot
+rarity: uncommon
+type: material
+base-item: minecraft:magma_cream
+display-name: Hot Magma Cream
+desc: Boiling cream found in the Nether.
+width: 1
+height: 1
+worth: 65.0
+virtual-item: false
+rewards:
+- type: item
+  id: minecraft:magma_cream
+  amount: 12

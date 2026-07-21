@@ -1,0 +1,14 @@
+id: quartz_block_pure
+rarity: rare
+type: material
+base-item: minecraft:quartz_block
+display-name: Pure Quartz Block
+desc: A solid block of white nether quartz.
+width: 2
+height: 2
+worth: 180.0
+virtual-item: false
+rewards:
+- type: item
+  id: minecraft:quartz_block
+  amount: 16

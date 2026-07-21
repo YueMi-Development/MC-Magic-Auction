@@ -1,0 +1,14 @@
+id: emerald_gem
+rarity: rare
+type: material
+base-item: minecraft:emerald
+display-name: Emerald Gem
+desc: A bright green emerald gem.
+width: 1
+height: 1
+worth: 250.0
+virtual-item: false
+rewards:
+- type: item
+  id: minecraft:emerald
+  amount: 10

@@ -1,0 +1,16 @@
+id: god_sword
+rarity: mythical
+type: combat
+base-item: minecraft:netherite_sword
+display-name: Sword of the Gods
+desc: An incredibly sharp netherite sword.
+width: 1
+height: 3
+worth: 5000.0
+virtual-item: false
+rewards:
+- type: item
+  id: minecraft:netherite_sword
+  amount: 1
+- type: command
+  value: give %player% minecraft:netherite_sword[sharpness=6,unbreaking=4] 1

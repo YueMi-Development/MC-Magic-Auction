@@ -1,0 +1,14 @@
+id: bright_torch
+rarity: common
+type: utility
+base-item: minecraft:torch
+display-name: Bright Torch
+desc: Provides light in dark places.
+width: 1
+height: 1
+worth: 5.0
+virtual-item: false
+rewards:
+- type: item
+  id: minecraft:torch
+  amount: 32

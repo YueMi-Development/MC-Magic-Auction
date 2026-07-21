@@ -1,0 +1,14 @@
+id: trident_lightning
+rarity: legendary
+type: combat
+base-item: minecraft:trident
+display-name: Trident of Lightning
+desc: Channels storms and marine power.
+width: 1
+height: 3
+worth: 1200.0
+virtual-item: false
+rewards:
+- type: item
+  id: minecraft:trident
+  amount: 1

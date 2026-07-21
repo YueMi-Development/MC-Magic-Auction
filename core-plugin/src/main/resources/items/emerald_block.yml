@@ -1,0 +1,15 @@
+id: "emerald_block"
+rarity: "legendary"
+type: "collectible"
+base-item: "minecraft:emerald_block"
+display-name: "Emerald Block"
+desc: "A solid block of pure emerald."
+width: 1
+height: 1
+custom-model-data: 0
+worth: 400.0
+virtual-item: false
+rewards:
+  - type: "item"
+    id: "minecraft:emerald_block"
+    amount: 1

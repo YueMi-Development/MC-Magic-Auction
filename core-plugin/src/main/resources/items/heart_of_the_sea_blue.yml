@@ -1,0 +1,14 @@
+id: heart_of_the_sea_blue
+rarity: super_rare
+type: collectible
+base-item: minecraft:heart_of_the_sea
+display-name: Heart of the Sea
+desc: A rare blue orb pulsing with sea energy.
+width: 1
+height: 1
+worth: 800.0
+virtual-item: false
+rewards:
+- type: item
+  id: minecraft:heart_of_the_sea
+  amount: 1

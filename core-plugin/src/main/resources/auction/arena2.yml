@@ -3,7 +3,7 @@ name: "Infernal Deep Auction"
 thinking-time: 15
 bid-time: 30
 base-price: 250
-min-items: 5
+min-items: 6
 max-items: 10
 multipliers:
   - 3.0
@@ -18,7 +18,29 @@ events:
   - "reveal_large_items"
   - "reveal_two_sizes"
 rewards:
-  - id: "nether_shard"
+  - id: "lucky_charm"
+    amount: 2
+  - id: "crystal_shard"
     amount: 3
-  - id: "netherite_ingot"
+  - id: "mysterious_box"
+    amount: 1
+  - id: "iron_block_heavy"
+    amount: 2
+  - id: "lapis_block_dusty"
+    amount: 2
+  - id: "golden_apple_sweet"
+    amount: 1
+  - id: "ender_pearl_orb"
+    amount: 2
+  - id: "leather_saddle"
+    amount: 1
+  - id: "obsidian_shard"
+    amount: 2
+  - id: "slime_ball_sticky"
+    amount: 2
+  - id: "magma_cream_hot"
+    amount: 2
+  - id: "glistering_melon"
+    amount: 2
+  - id: "blaze_powder_jar"
     amount: 2

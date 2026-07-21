@@ -1,0 +1,17 @@
+id: "dragon_egg"
+rarity: "mythical"
+type: "trophy"
+base-item: "minecraft:dragon_egg"
+display-name: "Dragon Egg"
+desc: "The ultimate trophy from the Ender Dragon."
+width: 2
+height: 2
+custom-model-data: 0
+worth: 1500.0
+virtual-item: false
+rewards:
+  - type: "item"
+    id: "minecraft:dragon_egg"
+    amount: 1
+  - type: "command"
+    value: "xp add %player% 5000"

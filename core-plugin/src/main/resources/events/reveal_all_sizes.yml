@@ -1,0 +1,6 @@
+name: "X-Ray Dimensions"
+desc: "The size of all items is revealed!"
+actions:
+  - type: "size"
+    selection: "all"
+    count: 0

@@ -1,0 +1,11 @@
+id: magic_crown
+rarity: mythical
+type: trophy
+base-item: minecraft:golden_helmet
+display-name: Crown of Magic
+desc: A legendary virtual crown.
+width: 2
+height: 2
+worth: 3500.0
+virtual-item: true
+rewards: []

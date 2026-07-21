@@ -1,0 +1,14 @@
+id: sponge_wet_absorbent
+rarity: super_rare
+type: utility
+base-item: minecraft:wet_sponge
+display-name: Wet Sponge
+desc: Absorbs large quantities of water.
+width: 2
+height: 1
+worth: 450.0
+virtual-item: false
+rewards:
+- type: item
+  id: minecraft:sponge
+  amount: 8

@@ -1,0 +1,7 @@
+name: "Mythical Glimpse"
+desc: "One mythical item is fully revealed!"
+actions:
+  - type: "full"
+    selection: "random"
+    count: 1
+    rarity: "mythical"

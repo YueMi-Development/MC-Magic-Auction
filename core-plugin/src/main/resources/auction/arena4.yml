@@ -1,0 +1,50 @@
+id: "arena4"
+name: "Ancient Celestial Keep"
+thinking-time: 15
+bid-time: 30
+base-price: 1000
+min-items: 10
+max-items: 15
+multipliers:
+  - 4.0
+  - 3.0
+  - 2.0
+  - 1.4
+  - 1.0
+events:
+  - "reveal_one_mythical"
+  - "reveal_all_sizes"
+  - "reveal_five_rare"
+  - "reveal_large_items"
+  - "reveal_two_full"
+rewards:
+  - id: "mysterious_box"
+    amount: 3
+  - id: "diamond_block"
+    amount: 2
+  - id: "emerald_block"
+    amount: 2
+  - id: "netherite_ingot"
+    amount: 1
+  - id: "wither_skeleton_skull_bone"
+    amount: 1
+  - id: "shulker_shell_plated"
+    amount: 2
+  - id: "totem_of_undying_gold"
+    amount: 1
+  - id: "heart_of_the_sea_blue"
+    amount: 1
+  - id: "sponge_wet_absorbent"
+    amount: 2
+  - id: "phantom_membrane_fabric"
+    amount: 2
+  - id: "enchanted_golden_apple_op"
+    amount: 1
+  - id: "beacon_light"
+    amount: 1
+  - id: "netherite_scrap_debris"
+    amount: 2
+  - id: "trident_lightning"
+    amount: 1
+  - id: "elytra_wings"
+    amount: 1

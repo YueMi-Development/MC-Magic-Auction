@@ -1,0 +1,14 @@
+id: wither_skeleton_skull_bone
+rarity: super_rare
+type: collectible
+base-item: minecraft:wither_skeleton_skull
+display-name: Wither Skeleton Skull
+desc: A dark skeletal skull from the nether fortress.
+width: 1
+height: 1
+worth: 600.0
+virtual-item: false
+rewards:
+- type: item
+  id: minecraft:wither_skeleton_skull
+  amount: 1

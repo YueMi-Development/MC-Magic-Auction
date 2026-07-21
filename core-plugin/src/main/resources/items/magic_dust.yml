@@ -1,0 +1,11 @@
+id: "magic_dust"
+rarity: "uncommon"
+type: "consumable"
+base-item: "minecraft:glowstone_dust"
+display-name: "Magic Dust"
+desc: "Glows with a strange auction magic."
+width: 1
+height: 1
+custom-model-data: 1005
+worth: 30.0
+virtual-item: true

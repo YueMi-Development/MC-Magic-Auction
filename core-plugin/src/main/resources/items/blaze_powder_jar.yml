@@ -1,0 +1,14 @@
+id: blaze_powder_jar
+rarity: uncommon
+type: material
+base-item: minecraft:blaze_powder
+display-name: Blaze Powder Jar
+desc: Jar of glowing hot blaze powder.
+width: 1
+height: 1
+worth: 70.0
+virtual-item: false
+rewards:
+- type: item
+  id: minecraft:blaze_powder
+  amount: 16

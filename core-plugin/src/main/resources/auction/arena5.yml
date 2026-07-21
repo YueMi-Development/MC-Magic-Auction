@@ -1,0 +1,44 @@
+id: "arena5"
+name: "Eldritch Dragon Sanctuary"
+thinking-time: 15
+bid-time: 30
+base-price: 2500
+min-items: 12
+max-items: 18
+multipliers:
+  - 5.0
+  - 3.5
+  - 2.2
+  - 1.5
+  - 1.0
+events:
+  - "reveal_one_mythical"
+  - "reveal_all_rarity_mythical"
+  - "reveal_all_sizes"
+  - "reveal_large_items"
+  - "reveal_five_rare"
+rewards:
+  - id: "diamond_block"
+    amount: 3
+  - id: "emerald_block"
+    amount: 3
+  - id: "netherite_ingot"
+    amount: 2
+  - id: "dragon_egg"
+    amount: 1
+  - id: "enchanted_golden_apple_op"
+    amount: 2
+  - id: "beacon_light"
+    amount: 2
+  - id: "netherite_scrap_debris"
+    amount: 2
+  - id: "trident_lightning"
+    amount: 1
+  - id: "elytra_wings"
+    amount: 1
+  - id: "nether_star_divine"
+    amount: 1
+  - id: "god_sword"
+    amount: 1
+  - id: "magic_crown"
+    amount: 1

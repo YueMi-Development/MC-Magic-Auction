@@ -1,0 +1,14 @@
+id: leather_saddle
+rarity: uncommon
+type: utility
+base-item: minecraft:saddle
+display-name: Leather Saddle
+desc: Used to ride horses and pigs.
+width: 2
+height: 1
+worth: 80.0
+virtual-item: false
+rewards:
+- type: item
+  id: minecraft:saddle
+  amount: 1

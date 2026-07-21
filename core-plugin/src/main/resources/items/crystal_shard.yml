@@ -1,0 +1,15 @@
+id: "crystal_shard"
+rarity: "rare"
+type: "material"
+base-item: "minecraft:amethyst_shard"
+display-name: "Crystal Shard"
+desc: "A beautiful purple crystalline shard."
+width: 1
+height: 2
+custom-model-data: 1006
+worth: 120.0
+virtual-item: false
+rewards:
+  - type: "item"
+    id: "minecraft:amethyst_shard"
+    amount: 4

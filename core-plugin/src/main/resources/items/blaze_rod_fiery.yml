@@ -1,0 +1,14 @@
+id: blaze_rod_fiery
+rarity: rare
+type: material
+base-item: minecraft:blaze_rod
+display-name: Fiery Blaze Rod
+desc: Radiates intense heat.
+width: 1
+height: 2
+worth: 180.0
+virtual-item: false
+rewards:
+- type: item
+  id: minecraft:blaze_rod
+  amount: 8

@@ -1,0 +1,14 @@
+id: ghast_tear_cry
+rarity: rare
+type: material
+base-item: minecraft:ghast_tear
+display-name: Crying Ghast Tear
+desc: Full of raw sorrow and magic.
+width: 1
+height: 1
+worth: 220.0
+virtual-item: false
+rewards:
+- type: item
+  id: minecraft:ghast_tear
+  amount: 4

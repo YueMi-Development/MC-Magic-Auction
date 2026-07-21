@@ -1,0 +1,14 @@
+id: enchanted_golden_apple_op
+rarity: legendary
+type: consumable
+base-item: minecraft:enchanted_golden_apple
+display-name: Enchanted Golden Apple
+desc: The legendary Notch Apple.
+width: 1
+height: 1
+worth: 1500.0
+virtual-item: false
+rewards:
+- type: item
+  id: minecraft:enchanted_golden_apple
+  amount: 1

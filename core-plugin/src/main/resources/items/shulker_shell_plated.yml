@@ -1,0 +1,14 @@
+id: shulker_shell_plated
+rarity: super_rare
+type: material
+base-item: minecraft:shulker_shell
+display-name: Plated Shulker Shell
+desc: Outer shell of a shulker.
+width: 1
+height: 1
+worth: 500.0
+virtual-item: false
+rewards:
+- type: item
+  id: minecraft:shulker_shell
+  amount: 2

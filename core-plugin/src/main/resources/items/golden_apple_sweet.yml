@@ -1,0 +1,14 @@
+id: golden_apple_sweet
+rarity: uncommon
+type: consumable
+base-item: minecraft:golden_apple
+display-name: Sweet Golden Apple
+desc: A shiny golden apple with magic properties.
+width: 1
+height: 1
+worth: 120.0
+virtual-item: false
+rewards:
+- type: item
+  id: minecraft:golden_apple
+  amount: 2

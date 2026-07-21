@@ -1,0 +1,14 @@
+id: elytra_wings
+rarity: legendary
+type: utility
+base-item: minecraft:elytra
+display-name: Elytra Wings
+desc: Grants the power of flight.
+width: 2
+height: 3
+worth: 2000.0
+virtual-item: false
+rewards:
+- type: item
+  id: minecraft:elytra
+  amount: 1

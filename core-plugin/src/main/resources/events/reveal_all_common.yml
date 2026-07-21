@@ -1,0 +1,7 @@
+name: "Common Exposure"
+desc: "All common items are fully revealed!"
+actions:
+  - type: "full"
+    selection: "all"
+    count: 0
+    rarity: "common"

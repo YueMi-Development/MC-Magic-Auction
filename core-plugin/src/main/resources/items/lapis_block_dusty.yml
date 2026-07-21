@@ -1,0 +1,14 @@
+id: lapis_block_dusty
+rarity: uncommon
+type: material
+base-item: minecraft:lapis_block
+display-name: Dusty Lapis Block
+desc: A block of lapis lazuli coated in dust.
+width: 1
+height: 1
+worth: 75.0
+virtual-item: false
+rewards:
+- type: item
+  id: minecraft:lapis_block
+  amount: 3

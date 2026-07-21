@@ -4,7 +4,7 @@ thinking-time: 15
 bid-time: 30
 base-price: 100
 min-items: 5
-max-items: 10
+max-items: 8
 multipliers:
   - 2.0
   - 1.5
@@ -12,15 +12,35 @@ multipliers:
   - 1.1
   - 1.0
 events:
+  - "reveal_all_common"
+  - "reveal_one_type_random"
+  - "reveal_one_size_random"
   - "reveal_three_types"
-  - "reveal_two_full"
-  - "reveal_five_rare"
-  - "reveal_large_items"
   - "reveal_two_sizes"
 rewards:
   - id: "golden_ticket"
-    amount: 2
+    amount: 3
+  - id: "magic_dust"
+    amount: 5
   - id: "lucky_charm"
-    amount: 1
-  - id: "diamond_block"
     amount: 2
+  - id: "coal_lump"
+    amount: 3
+  - id: "iron_nugget_ore"
+    amount: 2
+  - id: "baked_bread"
+    amount: 2
+  - id: "bright_torch"
+    amount: 2
+  - id: "redstone_dust_pile"
+    amount: 3
+  - id: "sweet_apple"
+    amount: 2
+  - id: "copper_ingot_bundle"
+    amount: 2
+  - id: "oak_log_stack"
+    amount: 3
+  - id: "leather_sheet"
+    amount: 2
+  - id: "gunpowder_keg"
+    amount: 3
