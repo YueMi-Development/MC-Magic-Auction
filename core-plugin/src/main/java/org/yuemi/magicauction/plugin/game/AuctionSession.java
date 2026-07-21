@@ -418,6 +418,10 @@ public final class AuctionSession {
             Material material;
             if (sizeRevealed && rarityRevealed) {
                 material = GlassPaneMapper.getMaterial(state.getConfig().getRarity());
+            } else if (rarityRevealed) {
+                // Rarity known but size unknown — use a solid glass block (no pane)
+                // to convey color without implying the item's full shape
+                material = GlassPaneMapper.getBlockMaterial(state.getConfig().getRarity());
             } else {
                 material = Material.BLACK_STAINED_GLASS_PANE;
             }

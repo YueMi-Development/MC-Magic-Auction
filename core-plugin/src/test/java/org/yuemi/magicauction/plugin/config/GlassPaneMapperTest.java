@@ -59,4 +59,45 @@ class GlassPaneMapperTest {
         assertEquals(Material.ORANGE_STAINED_GLASS_PANE, GlassPaneMapper.getMaterial("gold"));
         assertEquals(Material.ORANGE_STAINED_GLASS_PANE, GlassPaneMapper.getMaterial("orange"));
     }
+
+    @ParameterizedTest
+    @CsvSource({
+            "black, BLACK_STAINED_GLASS",
+            "dark_blue, BLUE_STAINED_GLASS",
+            "dark_green, GREEN_STAINED_GLASS",
+            "dark_aqua, CYAN_STAINED_GLASS",
+            "dark_red, RED_STAINED_GLASS",
+            "dark_purple, PURPLE_STAINED_GLASS",
+            "gold, ORANGE_STAINED_GLASS",
+            "orange, ORANGE_STAINED_GLASS",
+            "gray, LIGHT_GRAY_STAINED_GLASS",
+            "dark_gray, GRAY_STAINED_GLASS",
+            "blue, LIGHT_BLUE_STAINED_GLASS",
+            "green, LIME_STAINED_GLASS",
+            "aqua, CYAN_STAINED_GLASS",
+            "red, RED_STAINED_GLASS",
+            "light_purple, MAGENTA_STAINED_GLASS",
+            "yellow, YELLOW_STAINED_GLASS",
+            "white, WHITE_STAINED_GLASS"
+    })
+    void knownColors_mapToBlockCorrectly(String colorName, String expectedMaterialName) {
+        Material expected = Material.valueOf(expectedMaterialName);
+        assertEquals(expected, GlassPaneMapper.getBlockMaterial(colorName));
+    }
+
+    @Test
+    void unknownColor_returnsGrayGlassBlockFallback() {
+        assertEquals(Material.GRAY_STAINED_GLASS, GlassPaneMapper.getBlockMaterial("rainbow"));
+    }
+
+    @Test
+    void emptyString_returnsGrayGlassBlockFallback() {
+        assertEquals(Material.GRAY_STAINED_GLASS, GlassPaneMapper.getBlockMaterial(""));
+    }
+
+    @Test
+    void caseInsensitive_blockMapper() {
+        assertEquals(Material.RED_STAINED_GLASS, GlassPaneMapper.getBlockMaterial("DARK_RED"));
+        assertEquals(Material.RED_STAINED_GLASS, GlassPaneMapper.getBlockMaterial("Dark_Red"));
+    }
 }
