@@ -19,6 +19,10 @@ import org.yuemi.libs.api.gui.GuiApi;
 import org.yuemi.libs.api.gui.GuiItem;
 import org.yuemi.magicauction.plugin.config.ArenaConfig;
 import org.yuemi.magicauction.plugin.config.ItemConfig;
+import org.yuemi.magicauction.plugin.config.EventConfig;
+import org.yuemi.magicauction.plugin.config.EventRegistry;
+import org.yuemi.magicauction.plugin.config.RarityRegistry;
+import org.yuemi.magicauction.plugin.config.TypeRegistry;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 
 import java.util.*;
@@ -30,6 +34,7 @@ public final class AuctionSession {
     private final List<Player> players;
     private final long seed;
     private final Random random;
+    private final Random botRandom;
 
     private int currentRound = 1;
     private double currentBasePrice;
@@ -47,6 +52,8 @@ public final class AuctionSession {
     private final List<ItemStack> generatedPrizes = new ArrayList<>();
     private final Map<ItemStack, int[]> prizePositions = new HashMap<>(); // [y, x] in 3x6 grid
     private final Map<ItemStack, ItemConfig> prizeConfigs = new HashMap<>(); // Maps custom items to configs
+    private final List<PrizeState> prizeStates = new ArrayList<>();
+    private final List<String> shuffledEvents = new ArrayList<>();
 
     public AuctionSession(
             @NotNull AuctionManager manager,
@@ -59,7 +66,11 @@ public final class AuctionSession {
         this.players = new ArrayList<>(players);
         this.seed = seed;
         this.random = new Random(seed);
+        this.botRandom = new Random(seed + 9999L);
         this.currentBasePrice = arena.getBasePrice();
+        
+        this.shuffledEvents.addAll(arena.getEvents());
+        Collections.shuffle(this.shuffledEvents, this.random);
         
         generatePrizesFromArena();
     }
@@ -120,6 +131,7 @@ public final class AuctionSession {
                         prizePositions.put(stack, new int[]{y, x});
                         if (itemConfig != null) {
                             prizeConfigs.put(stack, itemConfig);
+                            prizeStates.add(new PrizeState(stack, itemConfig, new int[]{y, x}));
                         }
                         placed = true;
                         break;
@@ -135,6 +147,143 @@ public final class AuctionSession {
         startPreviewState();
     }
 
+    private EventConfig getRoundEvent() {
+        if (currentRound - 1 < shuffledEvents.size()) {
+            String eventId = shuffledEvents.get(currentRound - 1);
+            return EventRegistry.get(eventId);
+        }
+        // Fallback to round_<N>
+        return EventRegistry.get("round_" + currentRound);
+    }
+
+    private void executeEvent(@NotNull EventConfig event) {
+        broadcast("<gray>------------------------------------</gray>");
+        broadcast("<light_purple><bold>Event triggered:</bold> <yellow>" + event.getId().replace("_", " ") + "</yellow></light_purple>");
+        for (EventConfig.ActionEntry action : event.getActions()) {
+            executeAction(action);
+        }
+        broadcast("<gray>------------------------------------</gray>");
+    }
+
+    private void executeAction(@NotNull EventConfig.ActionEntry action) {
+        List<PrizeState> candidates = new ArrayList<>();
+        for (PrizeState state : prizeStates) {
+            if (state.isFullyRevealed()) continue;
+
+            boolean alreadyRevealed = false;
+            switch (action.getType()) {
+                case "type" -> alreadyRevealed = state.isTypeRevealed();
+                case "rarity" -> alreadyRevealed = state.isRarityRevealed();
+                case "size" -> alreadyRevealed = state.isSizeRevealed();
+                case "full" -> alreadyRevealed = state.isFullyRevealed();
+            }
+            if (alreadyRevealed) continue;
+
+            // Rarity condition
+            if (action.getRarity() != null && !action.getRarity().equalsIgnoreCase(state.getConfig().getRarity())) {
+                continue;
+            }
+
+            // Size condition
+            if (action.getMinTotalSize() > 0) {
+                int totalSize = state.getConfig().getWidth() * state.getConfig().getHeight();
+                if (totalSize < action.getMinTotalSize()) {
+                    continue;
+                }
+            }
+
+            candidates.add(state);
+        }
+
+        List<PrizeState> selected = new ArrayList<>();
+        if ("random".equalsIgnoreCase(action.getSelection())) {
+            int toSelect = Math.min(action.getCount(), candidates.size());
+            for (int i = 0; i < toSelect; i++) {
+                int idx = random.nextInt(candidates.size());
+                selected.add(candidates.remove(idx));
+            }
+        } else {
+            selected.addAll(candidates);
+        }
+
+        for (PrizeState state : selected) {
+            String revealedDetail = "";
+            switch (action.getType()) {
+                case "type" -> {
+                    state.setTypeRevealed(true);
+                    var typeInfo = TypeRegistry.get(state.getConfig().getType());
+                    String typeName = typeInfo != null ? typeInfo.getName() : state.getConfig().getType();
+                    revealedDetail = "Type: " + typeName;
+                }
+                case "rarity" -> {
+                    state.setRarityRevealed(true);
+                    var rarityInfo = RarityRegistry.get(state.getConfig().getRarity());
+                    String rarityName = rarityInfo != null ? rarityInfo.getName() : state.getConfig().getRarity();
+                    revealedDetail = "Rarity: " + rarityName;
+                }
+                case "size" -> {
+                    state.setSizeRevealed(true);
+                    revealedDetail = "Size: " + state.getConfig().getWidth() + "x" + state.getConfig().getHeight();
+                }
+                case "full" -> {
+                    state.setFullyRevealed(true);
+                    revealedDetail = "Item: " + state.getConfig().getDisplayName() + " (Full Info)";
+                }
+            }
+
+            int row = state.getPosition()[0] + 1;
+            int col = state.getPosition()[1] + 1;
+            broadcast("<gray> - Revealed " + revealedDetail + " at Row " + row + ", Column " + col + "</gray>");
+        }
+    }
+
+    private ItemStack createMaskedItemStack(@NotNull PrizeState state) {
+        Material material;
+        if (state.isSizeRevealed() && state.isRarityRevealed()) {
+            var rarityInfo = RarityRegistry.get(state.getConfig().getRarity());
+            material = rarityInfo != null ? rarityInfo.getGlassPaneMaterial() : Material.BLACK_STAINED_GLASS_PANE;
+        } else {
+            material = Material.BLACK_STAINED_GLASS_PANE;
+        }
+
+        ItemStack item = new ItemStack(material);
+        ItemMeta meta = item.getItemMeta();
+        if (meta != null) {
+            var mm = MiniMessage.miniMessage();
+            String nameText;
+            if (state.isTypeRevealed()) {
+                var typeInfo = TypeRegistry.get(state.getConfig().getType());
+                String typeName = typeInfo != null ? typeInfo.getName() : state.getConfig().getType();
+                nameText = "<yellow>Type: <white>" + typeName + "</white></yellow>";
+            } else {
+                nameText = "<red>Type: Unknown</red>";
+            }
+            meta.displayName(mm.deserialize(nameText));
+
+            List<net.kyori.adventure.text.Component> lore = new ArrayList<>();
+            if (state.isRarityRevealed()) {
+                var rarityInfo = RarityRegistry.get(state.getConfig().getRarity());
+                if (rarityInfo != null) {
+                    lore.add(mm.deserialize("<gray>Rarity: <" + rarityInfo.getColor() + ">" + rarityInfo.getName() + "</" + rarityInfo.getColor() + "></gray>"));
+                } else {
+                    lore.add(mm.deserialize("<gray>Rarity: Unknown</gray>"));
+                }
+            } else {
+                lore.add(mm.deserialize("<gray>Rarity: <red>Unknown</red></gray>"));
+            }
+
+            if (state.isSizeRevealed()) {
+                lore.add(mm.deserialize("<gray>Size: <yellow>" + state.getConfig().getWidth() + "x" + state.getConfig().getHeight() + "</yellow></gray>"));
+            } else {
+                lore.add(mm.deserialize("<gray>Size: <red>Unknown</red></gray>"));
+            }
+
+            meta.lore(lore);
+            item.setItemMeta(meta);
+        }
+        return item;
+    }
+
     private void startPreviewState() {
         cancelActiveTask();
         currentBids.clear();
@@ -142,6 +291,12 @@ public final class AuctionSession {
 
         double multiplier = getMultiplier();
         double binPrice = currentBasePrice * multiplier;
+
+        // Apply round event
+        EventConfig event = getRoundEvent();
+        if (event != null) {
+            executeEvent(event);
+        }
 
         broadcast("<gray>------------------------------------");
         broadcast("<green>Round " + currentRound + " Preview Starts!");
@@ -189,16 +344,40 @@ public final class AuctionSession {
 
         // Add prizes layer packed in 3x6 starting at row 1, col 1
         builder.createLayer("prizes", 1, layer -> {
-            for (ItemStack stack : generatedPrizes) {
-                int[] pos = prizePositions.get(stack);
-                int slot = (1 + pos[0]) * 9 + (1 + pos[1]);
+            for (PrizeState state : prizeStates) {
+                int[] pos = state.getPosition();
+                int startY = pos[0];
+                int startX = pos[1];
                 
-                GuiItem prizeGuiItem = guiApi.createItemBuilder()
-                        .item(stack)
-                        .onClick((p, ctx) -> ctx.getEvent().setCancelled(true))
-                        .build();
-                        
-                layer.setItem(slot, prizeGuiItem);
+                if (state.isFullyRevealed()) {
+                    int slot = (1 + startY) * 9 + (1 + startX);
+                    GuiItem prizeGuiItem = guiApi.createItemBuilder()
+                            .item(state.getOriginalStack())
+                            .onClick((p, ctx) -> ctx.getEvent().setCancelled(true))
+                            .build();
+                    layer.setItem(slot, prizeGuiItem);
+                } else if (state.isTypeRevealed() || state.isRarityRevealed() || state.isSizeRevealed()) {
+                    ItemStack glassPane = createMaskedItemStack(state);
+                    GuiItem paneGuiItem = guiApi.createItemBuilder()
+                            .item(glassPane)
+                            .onClick((p, ctx) -> ctx.getEvent().setCancelled(true))
+                            .build();
+                            
+                    if (state.isSizeRevealed()) {
+                        int width = state.getConfig().getWidth();
+                        int height = state.getConfig().getHeight();
+                        for (int dy = 0; dy < height; dy++) {
+                            for (int dx = 0; dx < width; dx++) {
+                                int slot = (1 + startY + dy) * 9 + (1 + startX + dx);
+                                layer.setItem(slot, paneGuiItem);
+                            }
+                        }
+                    } else {
+                        // 1x1 at anchor position
+                        int slot = (1 + startY) * 9 + (1 + startX);
+                        layer.setItem(slot, paneGuiItem);
+                    }
+                }
             }
         });
 
@@ -794,7 +973,7 @@ public final class AuctionSession {
     }
 
     private double simulateBotBid(double binPrice) {
-        double roll = random.nextDouble();
+        double roll = botRandom.nextDouble();
         if (roll < 0.10) {
             return binPrice;
         } else if (roll < 0.85) {
@@ -803,7 +982,7 @@ public final class AuctionSession {
             if (maxBid <= minBid) {
                 return minBid;
             }
-            return Math.floor(minBid + random.nextDouble() * (maxBid - minBid));
+            return Math.floor(minBid + botRandom.nextDouble() * (maxBid - minBid));
         } else {
             return 0.0;
         }

@@ -1,0 +1,6 @@
+name: "Reveal Three Types"
+desc: "Reveal 3 random items types"
+actions:
+  - type: "type"
+    selection: "random"
+    count: 3

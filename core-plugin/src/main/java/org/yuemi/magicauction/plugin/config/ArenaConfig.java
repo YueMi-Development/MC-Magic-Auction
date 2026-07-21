@@ -36,6 +36,7 @@ public final class ArenaConfig {
     private final double basePrice;
     private final List<Double> multipliers;
     private final List<PrizeEntry> rewards;
+    private final List<String> events;
 
     public ArenaConfig(
             @NotNull String id,
@@ -44,7 +45,8 @@ public final class ArenaConfig {
             int bidDuration,
             double basePrice,
             @NotNull List<Double> multipliers,
-            @NotNull List<PrizeEntry> rewards
+            @NotNull List<PrizeEntry> rewards,
+            @NotNull List<String> events
     ) {
         this.id = id;
         this.name = name;
@@ -53,6 +55,7 @@ public final class ArenaConfig {
         this.basePrice = Math.max(0.0, basePrice);
         this.multipliers = multipliers.isEmpty() ? List.of(2.0, 1.5, 1.3, 1.1, 1.0) : multipliers;
         this.rewards = rewards;
+        this.events = List.copyOf(events);
     }
 
     @NotNull
@@ -88,6 +91,11 @@ public final class ArenaConfig {
     }
 
     @NotNull
+    public List<String> getEvents() {
+        return events;
+    }
+
+    @NotNull
     public static ArenaConfig load(@NotNull File file) {
         YamlConfiguration config = YamlConfiguration.loadConfiguration(file);
         String id = config.getString("id", file.getName().replace(".yml", ""));
@@ -112,6 +120,8 @@ public final class ArenaConfig {
             }
         }
 
-        return new ArenaConfig(id, name, thinkingTime, bidDuration, basePrice, multipliers, rewards);
+        List<String> events = config.getStringList("events");
+
+        return new ArenaConfig(id, name, thinkingTime, bidDuration, basePrice, multipliers, rewards, events);
     }
 }

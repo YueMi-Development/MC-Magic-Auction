@@ -9,6 +9,12 @@ multipliers:
   - 1.5
   - 1.2
   - 1.0
+events:
+  - "reveal_three_types"
+  - "reveal_two_full"
+  - "reveal_five_rare"
+  - "reveal_large_items"
+  - "reveal_two_sizes"
 rewards:
   - id: "nether_shard"
     amount: 3

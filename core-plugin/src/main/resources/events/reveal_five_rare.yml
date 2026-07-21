@@ -1,0 +1,8 @@
+name: "Reveal Five Rare"
+desc: "Reveal 5 items that have rarity rare"
+actions:
+  - type: "full"
+    selection: "random"
+    count: 5
+    conditions:
+      rarity: "rare"

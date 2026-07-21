@@ -1,0 +1,6 @@
+name: "Reveal Two Sizes"
+desc: "Reveal size for 2 random items"
+actions:
+  - type: "size"
+    selection: "random"
+    count: 2

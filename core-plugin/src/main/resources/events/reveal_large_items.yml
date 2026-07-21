@@ -1,0 +1,7 @@
+name: "Reveal Large Items"
+desc: "Reveal all items that total size is more than 4"
+actions:
+  - type: "full"
+    selection: "all"
+    conditions:
+      min-total-size: 5

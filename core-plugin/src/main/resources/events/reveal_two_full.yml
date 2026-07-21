@@ -1,0 +1,6 @@
+name: "Reveal Two Full"
+desc: "Reveal all information for 2 items"
+actions:
+  - type: "full"
+    selection: "random"
+    count: 2
