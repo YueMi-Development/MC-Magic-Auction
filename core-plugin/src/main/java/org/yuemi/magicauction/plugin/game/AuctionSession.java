@@ -565,7 +565,12 @@ public final class AuctionSession {
                 int[] pos = state.getPosition();
                 int startY = pos[0];
                 int startX = pos[1];
-                
+
+                if (state.isHide()) {
+                    // Nothing revealed yet — don't render in preview at all
+                    continue;
+                }
+
                 if (state.isFullyRevealed()) {
                     int slot = startY * 9 + startX;
                     ItemStack prizeItem = buildContainerItemStack(state, false);
